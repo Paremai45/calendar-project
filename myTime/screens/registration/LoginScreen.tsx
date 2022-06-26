@@ -4,8 +4,9 @@ import TextInput from "react-native-text-input-interactive";
 import { Image } from 'react-native';
 import { useState } from 'react';
 import RegisterScreen from './RegisterScreen';
+import { RootStackScreenProps } from '../../types';
 
-export default function LoginScreen() {
+export default function LoginScreen({ navigation }: RootStackScreenProps<'Root'>) {
   return (
     <View style={styles.container}>
       {/* <Image
@@ -35,12 +36,12 @@ export default function LoginScreen() {
       </TouchableHighlight>
       <TouchableOpacity
         style={styles.registerButton}
-        onPress={() => onclickRegisterButton()}>
+        onPress={() => onclickRegisterButton(navigation)}>
         <Text style={styles.registerText}>สมัครสมาชิก</Text>
       </TouchableOpacity>
       <TouchableOpacity
         style={styles.loginButton}
-        onPress={() => onclickLoginButton()}>
+        onPress={() => onclickLoginButton(navigation)}>
         <Text style={styles.loginText}>ล็อคอิน</Text>
       </TouchableOpacity>
     </View>
@@ -51,12 +52,12 @@ function onclickForgotPassword() {
   console.log("onclickForgotPassword")
 }
 
-function onclickRegisterButton() {
-  console.log("onclickRegisterButton")
+function onclickRegisterButton(navigation: any) {
+  navigation.navigate('Register')
 }
 
-function onclickLoginButton() {
-  console.log("onclickLoginButton")
+function onclickLoginButton(navigation: any) {
+  navigation.navigate('Home')
 }
 
 const styles = StyleSheet.create({
@@ -105,7 +106,6 @@ const styles = StyleSheet.create({
   registerButton: {
     marginTop: 24,
     borderRadius: 25,
-    shadowColor: '#FFD523',
     backgroundColor: 'transparent',
     color: '#FFFFFF',
     width: '80%',

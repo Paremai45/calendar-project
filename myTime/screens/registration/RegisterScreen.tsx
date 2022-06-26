@@ -4,17 +4,25 @@ import { Text, View } from '../../components/Themed';
 import TextInput from "react-native-text-input-interactive";
 import { Image } from 'react-native';
 import { useState } from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { RootStackScreenProps } from '../../types';
 
-export default function RegisterScreen() {
+export default function RegisterScreen({ navigation }: RootStackScreenProps<'Root'>) {
   return (
     <View style={styles.container}>
       {/* <Image
         style={styles.loginImage}
         source={require('../assets/images/ic_login.png')}></Image> */}
+      <View style={styles.backButtonContainer}>
+        <TouchableOpacity
+          onPress={() => onclickBackButton(navigation)}>
+          <Image
+            style={styles.backbuttonImage}
+            source={require('../../assets/images/ic_back.png')}>
+          </Image>
+        </TouchableOpacity>
+      </View>
       <Text style={styles.title}>สมัครสมาชิก</Text>
-      <Text style={styles.secondSubTitle}>กิจกรรม ตารางเวลา การนัดหมาย</Text>
-      <Text style={styles.secondSubTitle}>ให้แอพลิเคชั่นนี้ช่วยคุณ</Text>
-      <Text style={styles.detailSubTitle}>เอาล่ะ ก่อนอื่น กรุณาล็อคอินหรือสมัครสมาชิกก่อนนะ</Text>
       <View style={styles.userNameView}>
         <TextInput
           placeholder='รหัสผู้ใช้งาน'
@@ -27,64 +35,68 @@ export default function RegisterScreen() {
           animatedPlaceholderTextColor='#B2B1B9'
           onChangeText={(text: string) => { }} />
       </View>
-      <TouchableHighlight
-        underlayColor={'transparent'}
-        style={styles.forgotPasswordTouchable}
-        onPress={() => onclickForgotPassword()}>
-        <Text style={styles.forgotPasswordTextTouchable}>ลืมรหัสผ่าน?</Text>
-      </TouchableHighlight>
+      <View style={styles.passwordView} >
+        <TextInput
+          placeholder='รหัสผ่านอีกครั้ง'
+          animatedPlaceholderTextColor='#B2B1B9'
+          onChangeText={(text: string) => { }} />
+      </View>
+      <View style={styles.passwordView} >
+        <TextInput
+          placeholder='ชื่อที่ใช้แสดงภายในแอพ'
+          animatedPlaceholderTextColor='#B2B1B9'
+          onChangeText={(text: string) => { }} />
+      </View>
+      <View style={styles.passwordView} >
+        <TextInput
+          placeholder='เบอร์โทรศัพท์ในการติดต่อ'
+          animatedPlaceholderTextColor='#B2B1B9'
+          onChangeText={(text: string) => { }} />
+      </View>
       <TouchableOpacity
         style={styles.registerButton}
         onPress={() => onclickRegisterButton()}>
         <Text style={styles.registerText}>สมัครสมาชิก</Text>
       </TouchableOpacity>
-      <TouchableOpacity
-        style={styles.loginButton}
-        onPress={() => onclickLoginButton()}>
-        <Text style={styles.loginText}>ล็อคอิน</Text>
-      </TouchableOpacity>
     </View>
   );
 }
 
-function onclickForgotPassword() {
-  console.log("onclickForgotPassword")
+function onclickBackButton(navigation: any) {
+  navigation.goBack()
 }
 
 function onclickRegisterButton() {
   console.log("onclickRegisterButton")
 }
 
-function onclickLoginButton() {
-  console.log("onclickLoginButton")
-}
-
 const styles = StyleSheet.create({
+  backButtonContainer: {
+    top: 0,
+    alignItems: 'flex-start',
+    alignSelf: 'flex-start',
+    justifyContent: 'flex-start',
+    position: 'absolute',
+    marginTop: 44,
+    paddingLeft: 8,
+    backgroundColor: 'transparent',
+    width: 50,
+    height: 30,
+  },
+  backbuttonImage: {
+    width: 24,
+    height: 24,
+  },
   container: {
     flex: 1,
     backgroundColor: 'transparent',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  loginImage: {
-    width: 250,
-    height: 250,
-  },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     paddingBottom: 12
-  },
-  secondSubTitle: {
-    color: '#1B2430',
-    fontSize: 14,
-    fontWeight: '500'
-  },
-  detailSubTitle: {
-    paddingTop: 12,
-    color: '#7F8487',
-    fontSize: 12,
-    fontWeight: 'normal'
   },
   userNameView: {
     paddingTop: 16,
@@ -105,33 +117,16 @@ const styles = StyleSheet.create({
   registerButton: {
     marginTop: 24,
     borderRadius: 25,
-    shadowColor: '#FFD523',
-    backgroundColor: 'transparent',
+    backgroundColor: '#B2B1B9',
     color: '#FFFFFF',
     width: '80%',
     height: 50,
     alignItems: 'center',
     justifyContent: 'center',
-    borderColor: '#B2B1B9',
-    borderWidth: 1,
   },
   registerText: {
-    color: '#B2B1B9',
+    color: '#FFFFFF',
     fontSize: 14,
     fontWeight: 'bold',
-  },
-  loginButton: {
-    marginTop: 16,
-    borderRadius: 25,
-    backgroundColor: '#8CC0DE',
-    width: '80%',
-    height: 50,
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  loginText: {
-    color: 'white',
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
+  }
 });
