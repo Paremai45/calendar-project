@@ -19,9 +19,10 @@ import TabTwoScreen from '../screens/TabTwoScreen';
 import { RootStackParamList, RootTabParamList, RootTabScreenProps } from '../types';
 import LinkingConfiguration from './LinkingConfiguration';
 
-// TESTS
+// Screens
 import LoginScreen from '../screens/registration/LoginScreen';
 import RegisterScreen from '../screens/registration/RegisterScreen';
+import ForgotPasswordScreen from '../screens/registration/ForgotPassword';
 
 export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeName }) {
   return (
@@ -44,6 +45,7 @@ function RootNavigator() {
     <Stack.Navigator initialRouteName='Root'>
       <Stack.Screen name="Root" component={LoginScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Register" component={RegisterScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Home" component={BottomTabNavigator} options={{ headerShown: false, gestureEnabled: false }} />
       <Stack.Screen name="NotFound" component={NotFoundScreen} options={{ title: 'Oops!', }} />
       {/* <Stack.Group screenOptions={{ presentation: 'modal' }}>

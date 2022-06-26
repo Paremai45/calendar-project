@@ -3,7 +3,6 @@ import { Text, View } from '../../components/Themed';
 import TextInput from "react-native-text-input-interactive";
 import { Image } from 'react-native';
 import { useState } from 'react';
-import RegisterScreen from './RegisterScreen';
 import { RootStackScreenProps } from '../../types';
 
 export default function LoginScreen({ navigation }: RootStackScreenProps<'Root'>) {
@@ -31,7 +30,7 @@ export default function LoginScreen({ navigation }: RootStackScreenProps<'Root'>
       <TouchableHighlight
         underlayColor={'transparent'}
         style={styles.forgotPasswordTouchable}
-        onPress={() => onclickForgotPassword()}>
+        onPress={() => onclickForgotPassword(navigation)}>
         <Text style={styles.forgotPasswordTextTouchable}>ลืมรหัสผ่าน?</Text>
       </TouchableHighlight>
       <TouchableOpacity
@@ -48,8 +47,8 @@ export default function LoginScreen({ navigation }: RootStackScreenProps<'Root'>
   );
 }
 
-function onclickForgotPassword() {
-  console.log("onclickForgotPassword")
+function onclickForgotPassword(navigation: any) {
+  navigation.navigate('ForgotPassword')
 }
 
 function onclickRegisterButton(navigation: any) {

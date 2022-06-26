@@ -7,7 +7,7 @@ import { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { RootStackScreenProps } from '../../types';
 
-export default function RegisterScreen({ navigation }: RootStackScreenProps<'Register'>) {
+export default function ForgotPasswordScreen({ navigation }: RootStackScreenProps<'ForgotPassword'>) {
   return (
     <View style={styles.container}>
       {/* <Image
@@ -22,28 +22,10 @@ export default function RegisterScreen({ navigation }: RootStackScreenProps<'Reg
           </Image>
         </TouchableOpacity>
       </View>
-      <Text style={styles.title}>สมัครสมาชิก</Text>
+      <Text style={styles.title}>ลืมรหัสผ่าน</Text>
       <View style={styles.userNameView}>
         <TextInput
           placeholder='รหัสผู้ใช้งาน'
-          animatedPlaceholderTextColor='#B2B1B9'
-          onChangeText={(text: string) => { }} />
-      </View>
-      <View style={styles.passwordView} >
-        <TextInput
-          placeholder='รหัสผ่าน'
-          animatedPlaceholderTextColor='#B2B1B9'
-          onChangeText={(text: string) => { }} />
-      </View>
-      <View style={styles.passwordView} >
-        <TextInput
-          placeholder='รหัสผ่านอีกครั้ง'
-          animatedPlaceholderTextColor='#B2B1B9'
-          onChangeText={(text: string) => { }} />
-      </View>
-      <View style={styles.passwordView} >
-        <TextInput
-          placeholder='ชื่อที่ใช้แสดงภายในแอพ'
           animatedPlaceholderTextColor='#B2B1B9'
           onChangeText={(text: string) => { }} />
       </View>
@@ -56,7 +38,7 @@ export default function RegisterScreen({ navigation }: RootStackScreenProps<'Reg
       <TouchableOpacity
         style={styles.registerButton}
         onPress={() => onclickRegisterButton()}>
-        <Text style={styles.registerText}>สมัครสมาชิก</Text>
+        <Text style={styles.registerText}>กู้คืนรหัสผ่าน</Text>
       </TouchableOpacity>
     </View>
   );
@@ -117,7 +99,7 @@ const styles = StyleSheet.create({
   registerButton: {
     marginTop: 24,
     borderRadius: 25,
-    backgroundColor: '#B2B1B9',
+    backgroundColor: '#F24C4C',
     color: '#FFFFFF',
     width: '80%',
     height: 50,
