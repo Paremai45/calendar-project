@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
   registerButton: {
     marginTop: 24,
     borderRadius: 25,
-    backgroundColor: '#F24C4C',
+    backgroundColor: '#FF5D5D',
     color: '#FFFFFF',
     width: '80%',
     height: 50,
