@@ -1,7 +1,9 @@
 import express from "express";
 import bodyParser from 'body-parser';
 import { initializeApp } from "firebase/app";
-import { getDatabase, ref, child, get } from "firebase/database";
+import { getDatabase, ref, child, get, set } from "firebase/database";
+import nodemailer from 'nodemailer';
+import bcrypt from 'bcrypt'
 
 // InitialApp
 const app = express();
@@ -17,42 +19,155 @@ const firebase = initializeApp(firebaseConfig);
 const database = getDatabase(firebase);
 
 // Endpoints
-app.get("/login", (req, res) => {
+app.post("/login", (req, res) => {
   (async () => {
+    let request = req.body
+    let reqUsername = request.username
+    let reqPassword = request.password
+    console.log("request", request)
     try {
-      get(ref(database, 'members'))
+      get(ref(database, 'users/' + reqUsername))
         .then((snapshot) => {
           if (snapshot.exists()) {
-            return res.status(200).json({
-              code: 200,
-              message: 'Success',
-              result: snapshot.val()
-            })
+            let value = snapshot.val()
+            let hashPassword = value.password
+            bcrypt.compare(reqPassword, hashPassword, function (err, matchPass) {
+              if (matchPass) {
+                return res.status(200).json({
+                  code: 200,
+                  message: 'success',
+                  result: {
+                    email: value.email,
+                    firstname: value.firstname,
+                    lastname: value.lastname,
+                    mobileNo: value.mobileNo
+                  }
+                })
+              } else {
+                return res.status(200).json({
+                  code: 200,
+                  message: 'passwordIncorrect',
+                  result: null
+                })
+              }
+            });
           } else {
             return res.status(200).json({
               code: 200,
-              message: 'Success',
+              message: 'notexisting',
               result: null
             })
           }
         }).catch((error) => {
           return res.status(500).json({
             code: 500,
-            message: error.message
+            message: error.message,
+            result: null
           })
         })
     } catch (error) {
       return res.status(500).json({
         code: 500,
-        message: error.message
+        message: error.message,
+        result: null
       })
     }
   })()
 });
 
 app.post("/register", (req, res) => {
-  res.send("สมัครสมาชิกสำเร็จ")
+  (async () => {
+    let request = req.body
+    let data = request.data
+    console.log("request", request)
+    try {
+      get(ref(database, 'users/' + request.username))
+        .then((snapshot) => {
+          if (snapshot.exists()) {
+            return res.status(200).json({
+              code: 200,
+              message: 'existing',
+              result: null
+            })
+          } else {
+            bcrypt.hash(data.password, 10, function (err, hash) {
+              set(ref(database, 'users/' + request.username), {
+                email: data.email,
+                firstname: data.firstname,
+                lastname: data.lastname,
+                password: hash,
+                mobileNo: data.mobileNo
+              })
+            })
+            return res.status(200).json({
+              code: 200,
+              message: "success",
+              result: null
+            })
+          }
+        }).catch((error) => {
+          return res.status(500).json({
+            code: 500,
+            message: error.message,
+            result: null
+          })
+        })
+    } catch (error) {
+      return res.status(500).json({
+        code: 500,
+        message: error.message,
+        result: null
+      })
+    }
+  })()
 });
+
+app.post("/forgetPassword", (req, res) => {
+  (async () => {
+    let request = req.body
+    console.log("request", request)
+    try {
+      var transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: 'calendarserviceapp@gmail.com',
+          pass: 'hbsfnyactjjeonri'
+        }
+      });
+
+      var mailOptions = {
+        from: 'calendarserviceapp@gmail.com',
+        to: 'phitchaporn.saw@gmail.com',
+        subject: 'Sending Email using Node.js',
+        text: 'That was easy!'
+      };
+
+      transporter.sendMail(mailOptions, function (error, info) {
+        if (error) {
+          console.log(error);
+          return res.status(200).json({
+            code: 200,
+            message: error.message,
+            result: null
+          })
+        } else {
+          console.log('Email sent: ' + info.response);
+          return res.status(200).json({
+            code: 200,
+            message: "success",
+            result: null
+          })
+        }
+      });
+    } catch (error) {
+      return res.status(500).json({
+        code: 500,
+        message: error.message,
+        result: null
+      })
+    }
+  })()
+})
 
 // Initialzed port
 app.listen(port, () => {

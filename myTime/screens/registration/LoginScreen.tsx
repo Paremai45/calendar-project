@@ -17,7 +17,7 @@ export default function LoginScreen({ navigation }: RootStackScreenProps<'Root'>
       <Text style={styles.detailSubTitle}>เอาล่ะ ก่อนอื่น กรุณาล็อคอินหรือสมัครสมาชิกก่อนนะ</Text>
       <View style={styles.userNameView}>
         <TextInput
-          placeholder='รหัสผู้ใช้งาน'
+          placeholder='อีเมลล์'
           animatedPlaceholderTextColor='#B2B1B9'
           onChangeText={(text: string) => { }} />
       </View>

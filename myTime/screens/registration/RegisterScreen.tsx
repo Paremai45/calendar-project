@@ -6,13 +6,30 @@ import { Image } from 'react-native';
 import { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { RootStackScreenProps } from '../../types';
+import Loader from '../Loader';
 
 export default function RegisterScreen({ navigation }: RootStackScreenProps<'Register'>) {
+  const [isLoading, setLoading] = useState(false);
+  const onclickRegisterButton = async () => {
+    setLoading(true)
+    console.log("onclickRegisterButton")
+    try {
+      const response = await fetch('http://localhost:4000/register');
+      const json = await response.json();
+      console.log(json)
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <View style={styles.container}>
       {/* <Image
         style={styles.loginImage}
         source={require('../assets/images/ic_login.png')}></Image> */}
+      <Loader isLoading={isLoading} />
       <View style={styles.backButtonContainer}>
         <TouchableOpacity
           onPress={() => onclickBackButton(navigation)}>
@@ -25,7 +42,7 @@ export default function RegisterScreen({ navigation }: RootStackScreenProps<'Reg
       <Text style={styles.title}>สมัครสมาชิก</Text>
       <View style={styles.userNameView}>
         <TextInput
-          placeholder='รหัสผู้ใช้งาน'
+          placeholder='อีเมลล์'
           animatedPlaceholderTextColor='#B2B1B9'
           onChangeText={(text: string) => { }} />
       </View>
@@ -43,7 +60,13 @@ export default function RegisterScreen({ navigation }: RootStackScreenProps<'Reg
       </View>
       <View style={styles.passwordView} >
         <TextInput
-          placeholder='ชื่อที่ใช้แสดงภายในแอพ'
+          placeholder='ชื่อจริง'
+          animatedPlaceholderTextColor='#B2B1B9'
+          onChangeText={(text: string) => { }} />
+      </View>
+      <View style={styles.passwordView} >
+        <TextInput
+          placeholder='นามสกุล'
           animatedPlaceholderTextColor='#B2B1B9'
           onChangeText={(text: string) => { }} />
       </View>
@@ -64,10 +87,6 @@ export default function RegisterScreen({ navigation }: RootStackScreenProps<'Reg
 
 function onclickBackButton(navigation: any) {
   navigation.goBack()
-}
-
-function onclickRegisterButton() {
-  console.log("onclickRegisterButton")
 }
 
 const styles = StyleSheet.create({
@@ -128,5 +147,11 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 14,
     fontWeight: 'bold',
+  },
+  activityIndicator: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: 80
   }
 });
