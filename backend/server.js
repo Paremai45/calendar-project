@@ -7,7 +7,6 @@ import bcrypt from 'bcrypt'
 
 // InitialApp
 const app = express();
-const port = process.env.PORT || 4000;
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
 
@@ -170,6 +169,6 @@ app.post("/forgetPassword", (req, res) => {
 })
 
 // Initialzed port
-app.listen(port, () => {
-  console.log("Starting Member micro service " + port);
-});
+app.listen(process.env.PORT, '0.0.0.0', () => {
+  console.log(`server running on port ${process.env.PORT}`)
+})

@@ -2,10 +2,9 @@
   "name": "backend",
   "version": "1.0.0",
   "description": "",
-  "main": "./endpoints/server.js",
+  "main": "server.js",
   "scripts": {
-    "start": "npm run dev",
-    "dev": "nodemon ./endpoints/server.js"
+    "start": "node server.js"
   },
   "keywords": [],
   "author": "",
