@@ -2,9 +2,9 @@
   "name": "backend",
   "version": "1.0.0",
   "description": "",
-  "main": "./endpoints/member.js",
+  "main": "./endpoints/server.js",
   "scripts": {
-    "dev": "nodemon ./endpoints/member.js"
+    "dev": "nodemon ./endpoints/server.js"
   },
   "keywords": [],
   "author": "",

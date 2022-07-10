@@ -10,13 +10,39 @@ import Loader from '../Loader';
 
 export default function RegisterScreen({ navigation }: RootStackScreenProps<'Register'>) {
   const [isLoading, setLoading] = useState(false);
+  const [data, setData] = useState({});
   const onclickRegisterButton = async () => {
     setLoading(true)
     console.log("onclickRegisterButton")
     try {
-      const response = await fetch('http://localhost:4000/register');
-      const json = await response.json();
-      console.log(json)
+      fetch('http://192.168.1.46:4000/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          "username": "paremai45",
+          "data": {
+            "email": "phitchaporn.saw@gmail.com",
+            "firstname": "Phitchaporn",
+            "lastname": "Sawatdiluk",
+            "password": "paremai45",
+            "mobileNo": "0863172481"
+          }
+        })
+      })
+        .then((response) => response.json())
+        .then((json) => {
+          let code = json.code
+          let message = json.code
+          if (code == 200 && message == "success") {
+
+          } else if (code == 200 && message == "existing") {
+
+          } else {
+
+          }
+        })
     } catch (error) {
       console.error(error);
     } finally {
