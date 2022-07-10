@@ -4,6 +4,7 @@
   "description": "",
   "main": "./endpoints/server.js",
   "scripts": {
+    "start": "npm run dev",
     "dev": "nodemon ./endpoints/server.js"
   },
   "keywords": [],
