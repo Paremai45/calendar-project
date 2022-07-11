@@ -3,7 +3,6 @@ import bodyParser from 'body-parser';
 import { initializeApp } from "firebase/app";
 import { getDatabase, ref, child, get, set } from "firebase/database";
 import nodemailer from 'nodemailer';
-import bcrypt from 'bcrypt'
 
 // InitialApp
 const app = express();
@@ -30,26 +29,24 @@ app.post("/login", (req, res) => {
           if (snapshot.exists()) {
             let value = snapshot.val()
             let hashPassword = value.password
-            bcrypt.compare(reqPassword, hashPassword, function (err, matchPass) {
-              if (matchPass) {
-                return res.status(200).json({
-                  code: 200,
-                  message: 'success',
-                  result: {
-                    email: value.email,
-                    firstname: value.firstname,
-                    lastname: value.lastname,
-                    mobileNo: value.mobileNo
-                  }
-                })
-              } else {
-                return res.status(200).json({
-                  code: 200,
-                  message: 'passwordIncorrect',
-                  result: null
-                })
-              }
-            });
+            if (hashPassword == reqPassword) {
+              return res.status(200).json({
+                code: 200,
+                message: 'success',
+                result: {
+                  email: value.email,
+                  firstname: value.firstname,
+                  lastname: value.lastname,
+                  mobileNo: value.mobileNo
+                }
+              })
+            } else {
+              return res.status(200).json({
+                code: 200,
+                message: 'passwordIncorrect',
+                result: null
+              })
+            }
           } else {
             return res.status(200).json({
               code: 200,
@@ -89,14 +86,12 @@ app.post("/register", (req, res) => {
               result: null
             })
           } else {
-            bcrypt.hash(data.password, 10, function (err, hash) {
-              set(ref(database, 'users/' + request.username), {
-                email: data.email,
-                firstname: data.firstname,
-                lastname: data.lastname,
-                password: hash,
-                mobileNo: data.mobileNo
-              })
+            set(ref(database, 'users/' + request.username), {
+              email: data.email,
+              firstname: data.firstname,
+              lastname: data.lastname,
+              password: data.password,
+              mobileNo: data.mobileNo
             })
             return res.status(200).json({
               code: 200,

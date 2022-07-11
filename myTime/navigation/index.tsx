@@ -44,7 +44,7 @@ function RootNavigator() {
   return (
     <Stack.Navigator initialRouteName='Root'>
       <Stack.Screen name="Root" component={LoginScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="Register" component={RegisterScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="Register" component={RegisterScreen} options={{ headerShown: true, title: "", headerShadowVisible: true, headerBackTitleVisible: false, headerTintColor: 'black' }} />
       <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Home" component={BottomTabNavigator} options={{ headerShown: false, gestureEnabled: false }} />
       <Stack.Screen name="NotFound" component={NotFoundScreen} options={{ title: 'Oops!', }} />
