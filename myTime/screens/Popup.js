@@ -60,7 +60,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     paddingLeft: 20,
     paddingRight: 20,
-    textDecorationStyle: '',
     flex: 1,
     flexWrap: 'wrap',
     textAlign: 'center'

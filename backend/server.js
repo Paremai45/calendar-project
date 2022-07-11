@@ -20,11 +20,12 @@ const database = getDatabase(firebase);
 app.post("/login", (req, res) => {
   (async () => {
     let request = req.body
-    let reqUsername = request.username
+    let reqEmail = request.email
     let reqPassword = request.password
     console.log("request", request)
     try {
-      get(ref(database, 'users/' + reqUsername))
+      const convertEmail = reqEmail.replaceAll('.', 'DOT')
+      get(ref(database, 'users/' + convertEmail))
         .then((snapshot) => {
           if (snapshot.exists()) {
             let value = snapshot.val()
@@ -77,7 +78,8 @@ app.post("/register", (req, res) => {
     let data = request.data
     console.log("request", request)
     try {
-      get(ref(database, 'users/' + request.username))
+      const convertEmail = data.email.replaceAll('.', 'DOT')
+      get(ref(database, 'users/' + convertEmail))
         .then((snapshot) => {
           if (snapshot.exists()) {
             return res.status(200).json({
@@ -86,8 +88,7 @@ app.post("/register", (req, res) => {
               result: null
             })
           } else {
-            set(ref(database, 'users/' + request.username), {
-              email: data.email,
+            set(ref(database, 'users/' + convertEmail), {
               firstname: data.firstname,
               lastname: data.lastname,
               password: data.password,
@@ -164,6 +165,6 @@ app.post("/forgetPassword", (req, res) => {
 })
 
 // Initialzed port
-app.listen(process.env.PORT, '0.0.0.0', () => {
+app.listen(process.env.PORT || 4000, '0.0.0.0', () => {
   console.log(`server running on port ${process.env.PORT}`)
 })

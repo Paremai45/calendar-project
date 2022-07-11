@@ -1,19 +1,21 @@
 
-import { StyleSheet, TouchableHighlight, TouchableOpacity, ScrollView } from 'react-native';
+import { StyleSheet, TouchableHighlight, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { Text, View } from '../../components/Themed';
-import { Image } from 'react-native';
-import { SetStateAction, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { RootStackScreenProps } from '../../types';
 import Loader from '../Loader';
 import PopupModal from '../Popup'
 import InteractiveTextInput from 'react-native-text-input-interactive';
 import { Base64 } from 'js-base64';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
+import { RootSiblingParent } from 'react-native-root-siblings';
+import Toast from 'react-native-root-toast';
 
 export default function RegisterScreen({ navigation }: RootStackScreenProps<'Register'>) {
   const [isLoading, setLoading] = useState(false);
   const [isShowedPopup, setShowedPopup] = useState(false);
-  const [isButtonDisabled, setButtonDisabled] = useState(true);
+  const [isShowedToast, setShowedToast] = useState(false);
+  const [isButtonDisabled, setButtonDisabled] = useState(false);
   const [isInValidEmail, setInValidEmail] = useState(false);
   const [isEmailEmpty, setEmailEmpty] = useState(false)
   const [isPasswordEmpty, setPasswordEmpty] = useState(false)
@@ -54,7 +56,6 @@ export default function RegisterScreen({ navigation }: RootStackScreenProps<'Reg
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            "username": "paremai45",
             "data": {
               "email": email,
               "firstname": firstName,
@@ -71,22 +72,33 @@ export default function RegisterScreen({ navigation }: RootStackScreenProps<'Reg
             console.log(json)
             if (code == 200 && message == "success") {
               console.log("registration success")
+              setShowedToast(true)
+              setTimeout(function () {
+                setLoading(false)
+              }, 2000);
+              setTimeout(function () {
+                setShowedToast(false)
+                navigation.goBack()
+              }, 3000);
             } else if (code == 200 && message == "existing") {
+              setLoading(false);
               setShowedPopup(true)
               setTitlePopup("ขออภัยในความไม่สะดวก")
               setMessagePopup("อีเมลล์นี้ถูกใช้งานแล้ว กรุณาเลือกใช้อีเมลล์อื่น")
               console.log("registration existing")
             } else {
+              setLoading(false);
               setShowedPopup(true)
+              setTitlePopup("ขออภัยในความไม่สะดวก")
+              setMessagePopup("เกิดข้อผิดพลาดจากทางเซิฟเวอร์ กรุณาลองอีกครั้ง")
               console.log("registration error")
             }
-            setLoading(false);
           })
       } catch (error) {
         setLoading(false);
+        setShowedPopup(true)
         setTitlePopup("ขออภัยในความไม่สะดวก")
         setMessagePopup("เกิดข้อผิดพลาดจากทางเซิฟเวอร์ กรุณาลองอีกครั้ง")
-        setShowedPopup(true)
         console.error(error);
       }
     } else {
@@ -208,144 +220,155 @@ export default function RegisterScreen({ navigation }: RootStackScreenProps<'Reg
   }
 
   return (
-    <KeyboardAwareScrollView
-      style={{ backgroundColor: 'white' }}
-      extraScrollHeight={50}>
-      {/* <ScrollView contentContainerStyle={{
+    <RootSiblingParent>
+      <KeyboardAwareScrollView
+        style={{ backgroundColor: 'white' }}
+        scrollEnabled={false}
+        extraScrollHeight={70}>
+        {/* <ScrollView contentContainerStyle={{
         flexGrow: 1,
         justifyContent: 'center',
         flexDirection: 'column',
       }}> */}
-      <View style={styles.container}>
-        <Loader isLoading={isLoading} />
-        <PopupModal open={isShowedPopup}
-          onClose={() => {
-            setShowedPopup(false)
-          }}
-          title={titlePopup}
-          message={messagePopup}
-          buttonTitle={"ตกลง"} />
-        <Text style={styles.title}>สมัครสมาชิก</Text>
-
-        {/* Email */}
-        <View style={styles.userNameView}>
-          <InteractiveTextInput
-            originalColor={isInValidEmail || isEmailEmpty ? 'red' : ''}
-            placeholder='อีเมลล์'
-            animatedPlaceholderTextColor='#B2B1B9'
-            onChangeText={(text: string) => { setEmail(text) }}
-            returnKeyType='done'
-            onBlur={() => validateEmail()}
-            keyboardType='email-address'
-            autoCorrect={false}
-            spellCheck={false}
-            onSubmitEditing={() => {
-              validateEmail()
+        <View style={styles.container}>
+          <Toast
+            opacity={1.0}
+            visible={isShowedToast}
+            position={10}
+            delay={100}
+            animation={true}
+            shadow={true}
+            shadowColor='#40BF11'
+            backgroundColor='#40BF11'
+          >สมัครสมาชิกสำเร็จ  🎉  🎉  🎉 </Toast>
+          <Loader isLoading={isLoading} />
+          <PopupModal open={isShowedPopup}
+            onClose={() => {
+              setShowedPopup(false)
             }}
-            textInputStyle={{ backgroundColor: '#f7f9fc' }} />
+            title={titlePopup}
+            message={messagePopup}
+            buttonTitle={"ตกลง"} />
+          <Text style={styles.title}>สมัครสมาชิก</Text>
+
+          {/* Email */}
+          <View style={styles.userNameView}>
+            <InteractiveTextInput
+              originalColor={isInValidEmail || isEmailEmpty ? 'red' : ''}
+              placeholder='อีเมลล์'
+              animatedPlaceholderTextColor='#B2B1B9'
+              onChangeText={(text: string) => { setEmail(text) }}
+              returnKeyType='done'
+              onBlur={() => validateEmail()}
+              keyboardType='email-address'
+              autoCorrect={false}
+              spellCheck={false}
+              onSubmitEditing={() => {
+                validateEmail()
+              }}
+              textInputStyle={{ backgroundColor: '#f7f9fc' }} />
+          </View>
+          {isInValidEmail && <Text style={styles.errorText}>{invalidEmailMessage}</Text>}
+          {isEmailEmpty && <Text style={styles.errorText}>{emptyMessage}</Text>}
+
+          {/* Password */}
+          <View style={styles.passwordView} >
+            <InteractiveTextInput
+              originalColor={isPasswordEmpty ? 'red' : ''}
+              placeholder='รหัสผ่าน'
+              animatedPlaceholderTextColor='#B2B1B9'
+              onChangeText={(text: string) => { setPassword(text) }}
+              returnKeyType='done'
+              secureTextEntry={isSecureTextEntry}
+              enableIcon={true}
+              iconImageSource={require("../../assets/images/visibility-button.png")}
+              onIconPress={() => { setSecureTextEntry(!isSecureTextEntry) }}
+              onBlur={() => validatePassword()}
+              onSubmitEditing={() => validatePassword()}
+              autoCorrect={false}
+              spellCheck={false}
+              textInputStyle={{ backgroundColor: '#f7f9fc' }} />
+          </View>
+          {isPasswordEmpty && <Text style={styles.errorText}>{emptyMessage}</Text>}
+
+          {/* Repeat Password */}
+          <View style={styles.passwordView} >
+            <InteractiveTextInput
+              originalColor={isRepeatPasswordEmpty ? 'red' : ''}
+              placeholder='รหัสผ่านอีกครั้ง'
+              animatedPlaceholderTextColor='#B2B1B9'
+              onChangeText={(text: string) => { setRepeatPassword(text) }}
+              returnKeyType='done'
+              enableIcon={true}
+              secureTextEntry={isSecureTextEntryRepeat}
+              iconImageSource={require("../../assets/images/visibility-button.png")}
+              onIconPress={() => { setSecureTextEntryRepeat(!isSecureTextEntryRepeat) }}
+              onBlur={() => validateRepeatPassword()}
+              onSubmitEditing={() => validateRepeatPassword()}
+              autoCorrect={false}
+              spellCheck={false}
+              textInputStyle={{ backgroundColor: '#f7f9fc' }} />
+          </View>
+          {isRepeatPasswordEmpty && <Text style={styles.errorText}>{emptyMessage}</Text>}
+
+          {/* FirstName */}
+          <View style={styles.passwordView} >
+            <InteractiveTextInput
+              originalColor={isFirstNameEmpty ? 'red' : ''}
+              placeholder='ชื่อจริง'
+              animatedPlaceholderTextColor='#B2B1B9'
+              onChangeText={(text: string) => { setFirstName(text) }}
+              returnKeyType='done'
+              onBlur={() => validateFirstName()}
+              onSubmitEditing={() => validateFirstName()}
+              autoCorrect={false}
+              spellCheck={false}
+              textInputStyle={{ backgroundColor: '#f7f9fc' }} />
+          </View>
+          {isFirstNameEmpty && <Text style={styles.errorText}>{emptyMessage}</Text>}
+
+          {/* LastName */}
+          <View style={styles.passwordView} >
+            <InteractiveTextInput
+              originalColor={isLastNameEmpty ? 'red' : ''}
+              placeholder='นามสกุล'
+              animatedPlaceholderTextColor='#B2B1B9'
+              onChangeText={(text: string) => { setLastName(text) }}
+              returnKeyType='done'
+              onBlur={() => validateLastName()}
+              onSubmitEditing={() => validateLastName()}
+              autoCorrect={false}
+              spellCheck={false}
+              textInputStyle={{ backgroundColor: '#f7f9fc' }} />
+          </View>
+          {isLastNameEmpty && <Text style={styles.errorText}>{emptyMessage}</Text>}
+
+          {/* MobileNo */}
+          <View style={styles.passwordView} >
+            <InteractiveTextInput
+              originalColor={isMobileNoEmpty ? 'red' : ''}
+              placeholder='เบอร์โทรศัพท์ในการติดต่อ'
+              animatedPlaceholderTextColor='#B2B1B9'
+              onChangeText={(text: string) => { setMobileNo(text) }}
+              returnKeyType='done'
+              onBlur={() => validateMobileNo()}
+              keyboardType='number-pad'
+              onSubmitEditing={() => validateMobileNo()}
+              autoCorrect={false}
+              spellCheck={false}
+              textInputStyle={{ backgroundColor: '#f7f9fc' }} />
+          </View>
+          {isMobileNoEmpty && <Text style={styles.errorText}>{emptyMessage}</Text>}
+
+          <TouchableOpacity
+            style={isButtonDisabled ? styles.registerButtonDisabled : styles.registerButtonEnabled}
+            disabled={isButtonDisabled}
+            onPress={() => onclickRegisterButton()}>
+            <Text style={styles.registerText}>สมัครสมาชิก</Text>
+          </TouchableOpacity>
         </View>
-        {isInValidEmail && <Text style={styles.errorText}>{invalidEmailMessage}</Text>}
-        {isEmailEmpty && <Text style={styles.errorText}>{emptyMessage}</Text>}
-
-        {/* Password */}
-        <View style={styles.passwordView} >
-          <InteractiveTextInput
-            originalColor={isPasswordEmpty ? 'red' : ''}
-            placeholder='รหัสผ่าน'
-            animatedPlaceholderTextColor='#B2B1B9'
-            onChangeText={(text: string) => { setPassword(text) }}
-            returnKeyType='done'
-            secureTextEntry={isSecureTextEntry}
-            enableIcon={true}
-            iconImageSource={require("../../assets/images/visibility-button.png")}
-            onIconPress={() => { setSecureTextEntry(!isSecureTextEntry) }}
-            onBlur={() => validatePassword()}
-            onSubmitEditing={() => validatePassword()}
-            autoCorrect={false}
-            spellCheck={false}
-            textInputStyle={{ backgroundColor: '#f7f9fc' }} />
-        </View>
-        {isPasswordEmpty && <Text style={styles.errorText}>{emptyMessage}</Text>}
-
-        {/* Repeat Password */}
-        <View style={styles.passwordView} >
-          <InteractiveTextInput
-            originalColor={isRepeatPasswordEmpty ? 'red' : ''}
-            placeholder='รหัสผ่านอีกครั้ง'
-            animatedPlaceholderTextColor='#B2B1B9'
-            onChangeText={(text: string) => { setRepeatPassword(text) }}
-            returnKeyType='done'
-            enableIcon={true}
-            secureTextEntry={isSecureTextEntryRepeat}
-            iconImageSource={require("../../assets/images/visibility-button.png")}
-            onIconPress={() => { setSecureTextEntryRepeat(!isSecureTextEntryRepeat) }}
-            onBlur={() => validateRepeatPassword()}
-            onSubmitEditing={() => validateRepeatPassword()}
-            autoCorrect={false}
-            spellCheck={false}
-            textInputStyle={{ backgroundColor: '#f7f9fc' }} />
-        </View>
-        {isRepeatPasswordEmpty && <Text style={styles.errorText}>{emptyMessage}</Text>}
-
-        {/* FirstName */}
-        <View style={styles.passwordView} >
-          <InteractiveTextInput
-            originalColor={isFirstNameEmpty ? 'red' : ''}
-            placeholder='ชื่อจริง'
-            animatedPlaceholderTextColor='#B2B1B9'
-            onChangeText={(text: string) => { setFirstName(text) }}
-            returnKeyType='done'
-            onBlur={() => validateFirstName()}
-            onSubmitEditing={() => validateFirstName()}
-            autoCorrect={false}
-            spellCheck={false}
-            textInputStyle={{ backgroundColor: '#f7f9fc' }} />
-        </View>
-        {isFirstNameEmpty && <Text style={styles.errorText}>{emptyMessage}</Text>}
-
-        {/* LastName */}
-        <View style={styles.passwordView} >
-          <InteractiveTextInput
-            originalColor={isLastNameEmpty ? 'red' : ''}
-            placeholder='นามสกุล'
-            animatedPlaceholderTextColor='#B2B1B9'
-            onChangeText={(text: string) => { setLastName(text) }}
-            returnKeyType='done'
-            onBlur={() => validateLastName()}
-            onSubmitEditing={() => validateLastName()}
-            autoCorrect={false}
-            spellCheck={false}
-            textInputStyle={{ backgroundColor: '#f7f9fc' }} />
-        </View>
-        {isLastNameEmpty && <Text style={styles.errorText}>{emptyMessage}</Text>}
-
-        {/* MobileNo */}
-        <View style={styles.passwordView} >
-          <InteractiveTextInput
-            originalColor={isMobileNoEmpty ? 'red' : ''}
-            placeholder='เบอร์โทรศัพท์ในการติดต่อ'
-            animatedPlaceholderTextColor='#B2B1B9'
-            onChangeText={(text: string) => { setMobileNo(text) }}
-            returnKeyType='done'
-            onBlur={() => validateMobileNo()}
-            keyboardType='number-pad'
-            onSubmitEditing={() => validateMobileNo()}
-            autoCorrect={false}
-            spellCheck={false}
-            textInputStyle={{ backgroundColor: '#f7f9fc' }} />
-        </View>
-        {isMobileNoEmpty && <Text style={styles.errorText}>{emptyMessage}</Text>}
-
-        <TouchableOpacity
-          style={isButtonDisabled ? styles.registerButtonDisabled : styles.registerButtonEnabled}
-          disabled={isButtonDisabled}
-          onPress={() => onclickRegisterButton()}>
-          <Text style={styles.registerText}>สมัครสมาชิก</Text>
-        </TouchableOpacity>
-      </View>
-    </KeyboardAwareScrollView>
-
-
+      </KeyboardAwareScrollView>
+    </RootSiblingParent>
   );
 }
 
@@ -354,23 +377,6 @@ function onclickBackButton(navigation: any) {
 }
 
 const styles = StyleSheet.create({
-  backButtonContainer: {
-    top: 0,
-    alignItems: 'flex-start',
-    alignSelf: 'flex-start',
-    justifyContent: 'flex-start',
-    position: 'absolute',
-    marginTop: 44,
-    paddingLeft: 8,
-    backgroundColor: 'transparent',
-    width: 50,
-    height: 30,
-    zIndex: 1
-  },
-  backbuttonImage: {
-    width: 24,
-    height: 24,
-  },
   container: {
     top: 32,
     backgroundColor: 'transparent',

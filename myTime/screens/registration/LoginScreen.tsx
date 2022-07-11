@@ -1,49 +1,222 @@
 import { StyleSheet, TouchableHighlight, TouchableOpacity } from 'react-native';
 import { Text, View } from '../../components/Themed';
 import TextInput from "react-native-text-input-interactive";
-import { Image } from 'react-native';
 import { useState } from 'react';
 import { RootStackScreenProps } from '../../types';
+import { RootSiblingParent } from 'react-native-root-siblings';
+import Toast from 'react-native-root-toast';
+import Loader from '../Loader';
+import PopupModal from '../Popup'
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
+import { Base64 } from 'js-base64';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function LoginScreen({ navigation }: RootStackScreenProps<'Root'>) {
+  const [isEmailEmpty, setEmailEmpty] = useState(false)
+  const [isPasswordEmpty, setPasswordEmpty] = useState(false)
+  const [isButtonDisabled, setButtonDisabled] = useState(false);
+  const [isSecureTextEntry, setSecureTextEntry] = useState(true)
+  const [isShowedPopup, setShowedPopup] = useState(false);
+  const [isShowedToast, setShowedToast] = useState(false);
+  const [isLoading, setLoading] = useState(false);
+
+  const [isInValidEmail, setInValidEmail] = useState(false);
+  const [isEmailValid, setEmailValid] = useState(false)
+  const [isPasswordValid, setPasswordValid] = useState(false)
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const [titlePopup, setTitlePopup] = useState("");
+  const [messagePopup, setMessagePopup] = useState("");
+  const invalidEmailMessage = "อีเมลล์ไม่ถูกฟอร์แมต"
+  const emptyMessage = "จำเป็นต้องกรอก"
+
+  const validateEmail = () => {
+    if (email.length == 0) {
+      setEmailEmpty(true)
+      setEmailValid(false)
+    } else {
+      setEmailEmpty(false)
+      setEmailValid(false)
+      let reg = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w\w+)+$/;
+      if (reg.test(email) === false) {
+        setInValidEmail(true)
+      }
+      else {
+        setInValidEmail(false)
+        setEmailValid(true)
+        setButtonDisabled(!(
+          isEmailValid &&
+          isPasswordValid))
+      }
+    }
+  }
+
+  const validatePassword = () => {
+    if (password.length == 0) {
+      setPasswordEmpty(true)
+      setPasswordValid(false)
+    } else {
+      setPasswordEmpty(false)
+      setPasswordValid(true)
+      setButtonDisabled(!(
+        isEmailValid &&
+        isPasswordValid))
+    }
+  }
+
+  function onclickLoginButton() {
+    // navigation.navigate('Home')
+    setLoading(true)
+    setEmailEmpty(email.length == 0)
+    setPasswordEmpty(password.length == 0)
+
+    if (isEmailValid && isPasswordValid) {
+      try {
+        fetch('https://calendar-mytime.herokuapp.com/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            "email": email,
+            "password": Base64.encode(password)
+          })
+        })
+          .then((response) => response.json())
+          .then((json) => {
+            let code = json.code
+            let message = json.message
+            console.log(json)
+            if (code == 200 && message == "success") {
+              console.log("login success")
+              setLoading(false)
+              try {
+                AsyncStorage.setItem(
+                  '@Login',
+                  JSON.stringify({ isLogin: true })
+                );
+              } catch (error) {
+                // Error saving data
+              }
+              setTimeout(function () {
+                navigation.push('Home')
+              }, 300);
+            } else if (code == 200 && message == "passwordIncorrect") {
+              setLoading(false);
+              setShowedToast(true)
+              setTimeout(function () {
+                setShowedToast(false)
+              }, 3000);
+              console.log("password incorrect")
+            } else {
+              setLoading(false);
+              setShowedPopup(true)
+              setTitlePopup("ขออภัยในความไม่สะดวก")
+              setMessagePopup("เกิดข้อผิดพลาดจากทางเซิฟเวอร์ กรุณาลองอีกครั้ง")
+              console.log("server error")
+            }
+          })
+      } catch (error) {
+        setLoading(false);
+        setShowedPopup(true)
+        setTitlePopup("ขออภัยในความไม่สะดวก")
+        setMessagePopup("เกิดข้อผิดพลาดจากทางเซิฟเวอร์ กรุณาลองอีกครั้ง")
+        console.error(error);
+      }
+    } else {
+
+    }
+  }
+
   return (
-    <View style={styles.container}>
-      {/* <Image
-        style={styles.loginImage}
-        source={require('../assets/images/ic_login.png')}></Image> */}
-      <Text style={styles.title}>แอพลิเคชั่นจัดการตารางเวลา</Text>
-      <Text style={styles.secondSubTitle}>กิจกรรม ตารางเวลา การนัดหมาย</Text>
-      <Text style={styles.secondSubTitle}>ให้แอพลิเคชั่นนี้ช่วยคุณ</Text>
-      <Text style={styles.detailSubTitle}>เอาล่ะ ก่อนอื่น กรุณาล็อคอินหรือสมัครสมาชิกก่อนนะ</Text>
-      <View style={styles.userNameView}>
-        <TextInput
-          placeholder='อีเมลล์'
-          animatedPlaceholderTextColor='#B2B1B9'
-          onChangeText={(text: string) => { }} />
-      </View>
-      <View style={styles.passwordView} >
-        <TextInput
-          placeholder='รหัสผ่าน'
-          animatedPlaceholderTextColor='#B2B1B9'
-          onChangeText={(text: string) => { }} />
-      </View>
-      <TouchableHighlight
-        underlayColor={'transparent'}
-        style={styles.forgotPasswordTouchable}
-        onPress={() => onclickForgotPassword(navigation)}>
-        <Text style={styles.forgotPasswordTextTouchable}>ลืมรหัสผ่าน?</Text>
-      </TouchableHighlight>
-      <TouchableOpacity
-        style={styles.registerButton}
-        onPress={() => onclickRegisterButton(navigation)}>
-        <Text style={styles.registerText}>สมัครสมาชิก</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={styles.loginButton}
-        onPress={() => onclickLoginButton(navigation)}>
-        <Text style={styles.loginText}>ล็อคอิน</Text>
-      </TouchableOpacity>
-    </View>
+    <RootSiblingParent>
+      <KeyboardAwareScrollView
+        style={{ backgroundColor: 'white' }}
+        scrollEnabled={false}
+        extraScrollHeight={70}>
+        <View style={styles.container}>
+          <Toast
+            opacity={1.0}
+            visible={isShowedToast}
+            position={100}
+            delay={100}
+            animation={true}
+            shadow={true}
+            shadowColor='red'
+            backgroundColor='red'
+          >อีเมลล์หรือรหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง</Toast>
+          <Loader isLoading={isLoading} />
+          <PopupModal open={isShowedPopup}
+            onClose={() => {
+              setShowedPopup(false)
+            }}
+            title={titlePopup}
+            message={messagePopup}
+            buttonTitle={"ตกลง"} />
+          <Text style={styles.title}>แอพลิเคชั่นจัดการตารางเวลา</Text>
+          <Text style={styles.secondSubTitle}>กิจกรรม ตารางเวลา การนัดหมาย</Text>
+          <Text style={styles.secondSubTitle}>ให้แอพลิเคชั่นนี้ช่วยคุณ</Text>
+          <Text style={styles.detailSubTitle}>เอาล่ะ ก่อนอื่น กรุณาล็อคอินหรือสมัครสมาชิกก่อนนะ</Text>
+          <View style={styles.userNameView}>
+
+            <TextInput
+              originalColor={isInValidEmail || isEmailEmpty ? 'red' : ''}
+              placeholder='อีเมลล์'
+              animatedPlaceholderTextColor='#B2B1B9'
+              onChangeText={(text: string) => { setEmail(text) }}
+              returnKeyType='done'
+              onBlur={() => validateEmail()}
+              keyboardType='email-address'
+              autoCorrect={false}
+              spellCheck={false}
+              textInputStyle={{ backgroundColor: '#f7f9fc' }}
+              onSubmitEditing={() => {
+                validateEmail()
+              }} />
+          </View>
+          {isInValidEmail && <Text style={styles.errorText}>{invalidEmailMessage}</Text>}
+          {isEmailEmpty && <Text style={styles.errorText}>{emptyMessage}</Text>}
+
+          <View style={styles.passwordView} >
+            <TextInput
+              originalColor={isPasswordEmpty ? 'red' : ''}
+              placeholder='รหัสผ่าน'
+              animatedPlaceholderTextColor='#B2B1B9'
+              onChangeText={(text: string) => { setPassword(text) }}
+              returnKeyType='done'
+              secureTextEntry={isSecureTextEntry}
+              enableIcon={true}
+              iconImageSource={require("../../assets/images/visibility-button.png")}
+              onIconPress={() => { setSecureTextEntry(!isSecureTextEntry) }}
+              onBlur={() => validatePassword()}
+              onSubmitEditing={() => validatePassword()}
+              autoCorrect={false}
+              spellCheck={false}
+              textInputStyle={{ backgroundColor: '#f7f9fc' }} />
+          </View>
+          {isPasswordEmpty && <Text style={styles.errorText}>{emptyMessage}</Text>}
+
+          <TouchableHighlight
+            underlayColor={'transparent'}
+            style={styles.forgotPasswordTouchable}
+            onPress={() => onclickForgotPassword(navigation)}>
+            <Text style={styles.forgotPasswordTextTouchable}>ลืมรหัสผ่าน?</Text>
+          </TouchableHighlight>
+          <TouchableOpacity
+            style={styles.registerButton}
+            onPress={() => onclickRegisterButton(navigation)}>
+            <Text style={styles.registerText}>สมัครสมาชิก</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.loginButton}
+            onPress={() => onclickLoginButton()}>
+            <Text style={styles.loginText}>ล็อคอิน</Text>
+          </TouchableOpacity>
+        </View>
+      </KeyboardAwareScrollView>
+    </RootSiblingParent>
   );
 }
 
@@ -55,16 +228,13 @@ function onclickRegisterButton(navigation: any) {
   navigation.navigate('Register')
 }
 
-function onclickLoginButton(navigation: any) {
-  navigation.navigate('Home')
-}
-
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    top: '50%',
+    bottom: '50%',
     backgroundColor: 'transparent',
-    alignItems: 'center',
     justifyContent: 'center',
+    alignItems: 'center',
   },
   loginImage: {
     width: 250,
@@ -132,5 +302,12 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 14,
     fontWeight: 'bold',
+  },
+  errorText: {
+    fontSize: 10,
+    paddingTop: 4,
+    paddingLeft: 36,
+    color: 'red',
+    alignSelf: 'flex-start'
   },
 });

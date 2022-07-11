@@ -9,6 +9,9 @@ import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import * as React from 'react';
 import { ColorSchemeName, Pressable } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useState, useEffect } from 'react';
+
 
 import Colors from '../constants/Colors';
 import useColorScheme from '../hooks/useColorScheme';
@@ -25,13 +28,34 @@ import ForgotPasswordScreen from '../screens/registration/ForgotPassword';
 import HomeScreen from '../screens/home/HomeScreen';
 
 export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeName }) {
-  return (
-    <NavigationContainer
-      linking={LinkingConfiguration}
-      theme={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <RootNavigator />
-    </NavigationContainer>
-  );
+  const [isLogin, setLogin] = useState(false)
+  useEffect(() => {
+    AsyncStorage.getItem('@Login', (err, result) => {
+      if (result != null) {
+        if (JSON.parse(result).isLogin) {
+          setLogin(true)
+        }
+      }
+    })
+  }, [isLogin]);
+
+  if (isLogin) {
+    return (
+      <NavigationContainer
+        linking={LinkingConfiguration}
+        theme={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <HomeRootNavigator />
+      </NavigationContainer>
+    );
+  } else {
+    return (
+      <NavigationContainer
+        linking={LinkingConfiguration}
+        theme={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <RootNavigator />
+      </NavigationContainer>
+    );
+  }
 }
 
 /**
@@ -47,6 +71,21 @@ function RootNavigator() {
       <Stack.Screen name="Register" component={RegisterScreen} options={{ headerShown: true, title: "", headerShadowVisible: true, headerBackTitleVisible: false, headerTintColor: 'black' }} />
       <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Home" component={BottomTabNavigator} options={{ headerShown: false, gestureEnabled: false }} />
+      <Stack.Screen name="NotFound" component={NotFoundScreen} options={{ title: 'Oops!', }} />
+      <Stack.Group screenOptions={{ presentation: 'modal' }}>
+        <Stack.Screen name="Modal" component={ModalScreen} />
+      </Stack.Group>
+    </Stack.Navigator>
+  );
+}
+
+function HomeRootNavigator() {
+  return (
+    <Stack.Navigator initialRouteName='Root'>
+      <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="Register" component={RegisterScreen} options={{ headerShown: true, title: "", headerShadowVisible: true, headerBackTitleVisible: false, headerTintColor: 'black' }} />
+      <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="Root" component={BottomTabNavigator} options={{ headerShown: false, gestureEnabled: false }} />
       <Stack.Screen name="NotFound" component={NotFoundScreen} options={{ title: 'Oops!', }} />
       <Stack.Group screenOptions={{ presentation: 'modal' }}>
         <Stack.Screen name="Modal" component={ModalScreen} />
