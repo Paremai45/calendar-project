@@ -8,10 +8,9 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import * as React from 'react';
-import { ColorSchemeName, Pressable } from 'react-native';
+import { ColorSchemeName, Pressable, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useState, useEffect } from 'react';
-
+import { useState, useEffect, useMemo } from 'react';
 
 import Colors from '../constants/Colors';
 import useColorScheme from '../hooks/useColorScheme';
@@ -29,33 +28,39 @@ import HomeScreen from '../screens/home/HomeScreen';
 
 export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeName }) {
   const [isLogin, setLogin] = useState(false)
+  const [isMount, setMount] = useState(false)
+  const [isDone, setDone] = useState(false)
   useEffect(() => {
-    AsyncStorage.getItem('@Login', (err, result) => {
-      if (result != null) {
-        if (JSON.parse(result).isLogin) {
-          setLogin(true)
+    async function fetchUser() {
+      AsyncStorage.getItem('@Login', (err, result) => {
+        if (result != null) {
+          if (JSON.parse(result).isLogin) {
+            console.log("Already Login")
+            setLogin(true)
+            setDone(true)
+          }
         }
-      }
-    })
-  }, [isLogin]);
+      })
+    }
+    fetchUser()
+  }, [isLogin])
 
-  if (isLogin) {
-    return (
-      <NavigationContainer
-        linking={LinkingConfiguration}
-        theme={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <HomeRootNavigator />
-      </NavigationContainer>
-    );
-  } else {
-    return (
-      <NavigationContainer
-        linking={LinkingConfiguration}
-        theme={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <RootNavigator />
-      </NavigationContainer>
-    );
+  useEffect(() => {
+    if (isDone) {
+      setMount(true)
+    }
+  }, [isDone])
+
+  if (!isMount) {
+    return (<View style={{ backgroundColor: 'white', flex: 1 }}></View>);
   }
+  return (
+    <NavigationContainer
+      linking={LinkingConfiguration}
+      theme={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+      {isLogin ? <HomeRootNavigator /> : <LoginRootNavigator />}
+    </NavigationContainer>
+  );
 }
 
 /**
@@ -64,7 +69,7 @@ export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeNa
  */
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
-function RootNavigator() {
+function LoginRootNavigator() {
   return (
     <Stack.Navigator initialRouteName='Root'>
       <Stack.Screen name="Root" component={LoginScreen} options={{ headerShown: false }} />
