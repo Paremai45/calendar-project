@@ -1,13 +1,13 @@
 
 import { StyleSheet, TouchableOpacity } from 'react-native';
 import { Text, View } from '../../components/Themed';
-import TextInput from "react-native-text-input-interactive";
 import { useState } from 'react';
 import { RootStackScreenProps } from '../../types';
 import Toast from 'react-native-root-toast';
 import Loader from '../../components/Loader';
 import PopupModal from '../../components/Popup'
 import { RootSiblingParent } from 'react-native-root-siblings';
+import InteractiveTextInput from 'react-native-text-input-interactive';
 
 export default function ForgotPasswordScreen({ navigation }: RootStackScreenProps<'ForgotPassword'>) {
   const [isLoading, setLoading] = useState(false);
@@ -53,19 +53,16 @@ export default function ForgotPasswordScreen({ navigation }: RootStackScreenProp
             console.log(json)
             if (code == 200 && message == "success") {
               console.log("forgetPassword success")
+              setLoading(false)
               setShowedToast(true)
-              setTimeout(function () {
-                setLoading(false)
-              }, 2000);
-              setTimeout(function () {
+              setTimeout(() => {
                 setShowedToast(false)
-                navigation.goBack()
-              }, 3000);
+              }, 10000);
             } else {
               setLoading(false);
               setShowedPopup(true)
-              setTitlePopup("ขออภัยในความไม่สะดวก")
-              setMessagePopup("เกิดข้อผิดพลาดจากทางเซิฟเวอร์ กรุณาลองอีกครั้ง")
+              setTitlePopup("ไม่พบอีเมลล์หรือเบอร์โทรศัพท์")
+              setMessagePopup("กรุณาตรวจสอบ อีเมลล์ หรือ เบอร์โทรศัพท์อีกครั้ง เมื่อถูกต้อง ระบบจะทำการส่งรหัสผ่านไปยังอีเมลล์ของคุณ")
               console.log("registration error")
             }
           })
@@ -78,8 +75,37 @@ export default function ForgotPasswordScreen({ navigation }: RootStackScreenProp
       }
     } else {
       setLoading(false)
+      console.log("Should input datas")
     }
   }
+
+  const validateEmail = () => {
+    if (email.length == 0) {
+      setEmailEmpty(true)
+      setEmailValid(false)
+    } else {
+      setEmailEmpty(false)
+      setEmailValid(false)
+      let reg = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w\w+)+$/;
+      if (reg.test(email) === false) {
+        setInValidEmail(true)
+      } else {
+        setInValidEmail(false)
+        setEmailValid(true)
+      }
+    }
+  }
+
+  const validateMobileNo = () => {
+    if (mobileNo.length == 0) {
+      setMobileNoEmpty(true)
+      setMobileNoValid(false)
+    } else {
+      setMobileNoEmpty(false)
+      setMobileNoValid(true)
+    }
+  }
+
   return (
     <RootSiblingParent>
       <View style={styles.container}>
@@ -103,21 +129,43 @@ export default function ForgotPasswordScreen({ navigation }: RootStackScreenProp
           buttonTitle={"ตกลง"} />
         <Text style={styles.title}>ลืมรหัสผ่าน</Text>
         <View style={styles.userNameView}>
-          <TextInput
+          <InteractiveTextInput
+            originalColor={isInValidEmail || isEmailEmpty ? 'red' : ''}
             placeholder='อีเมลล์'
             animatedPlaceholderTextColor='#B2B1B9'
             textInputStyle={{ backgroundColor: '#f7f9fc' }}
-            onChangeText={(text: string) => { }} />
+            returnKeyType='done'
+            onBlur={() => validateEmail()}
+            keyboardType='email-address'
+            autoCorrect={false}
+            spellCheck={false}
+            onSubmitEditing={() => {
+              validateEmail()
+            }}
+            onChangeText={(text: string) => { setEmail(text) }}
+          />
         </View>
         {isInValidEmail && <Text style={styles.errorText}>{invalidEmailMessage}</Text>}
         {isEmailEmpty && <Text style={styles.errorText}>{emptyMessage}</Text>}
 
         <View style={styles.passwordView} >
-          <TextInput
-            placeholder='เบอร์โทรศัพท์ที่ใช้ในการสมัคร'
+          <InteractiveTextInput
+            originalColor={isMobileNoEmpty ? 'red' : ''}
+            placeholder='เบอร์โทรศัพท์ที่ใช้ในการสมัครสมาชิก'
             animatedPlaceholderTextColor='#B2B1B9'
-            textInputStyle={{ backgroundColor: '#f7f9fc' }}
-            onChangeText={(text: string) => { }} />
+            onChangeText={(text: string) => {
+              setMobileNo(text.replace(/[^0-9]/g, ''))
+            }}
+            returnKeyType='done'
+            onBlur={() => validateMobileNo()}
+            keyboardType='numeric'
+            onSubmitEditing={() => validateMobileNo()}
+            autoCorrect={false}
+            spellCheck={false}
+            textContentType='telephoneNumber'
+            maxLength={12}
+            value={mobileNo}
+            textInputStyle={{ backgroundColor: '#f7f9fc' }} />
         </View>
         {isMobileNoEmpty && <Text style={styles.errorText}>{emptyMessage}</Text>}
 
