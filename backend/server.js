@@ -5,6 +5,7 @@ import { getDatabase, ref, child, get, set } from "firebase/database";
 import nodemailer from 'nodemailer';
 import admin from 'firebase-admin'
 import { createRequire } from "module"
+import { Base64 } from "js-base64";
 
 // InitialApp
 const app = express();
@@ -38,6 +39,7 @@ app.post("/login", (req, res) => {
           let value = snapshot.val()
           let hashPassword = value.password
           if (hashPassword == reqPassword) {
+            console.log("login success")
             return res.status(200).json({
               code: 200,
               message: 'success',
@@ -49,6 +51,7 @@ app.post("/login", (req, res) => {
               }
             })
           } else {
+            console.log("password incorrect")
             return res.status(200).json({
               code: 200,
               message: 'passwordIncorrect',
@@ -56,6 +59,7 @@ app.post("/login", (req, res) => {
             })
           }
         } else {
+          console.log(error)
           return res.status(200).json({
             code: 200,
             message: 'notexisting',
@@ -70,6 +74,7 @@ app.post("/login", (req, res) => {
         })
       })
     } catch (error) {
+      console.log(error)
       return res.status(500).json({
         code: 500,
         message: error.message,
@@ -93,6 +98,7 @@ app.post("/register", (req, res) => {
         console.log(snapshot.val())
         console.log(snapshot.exists())
         if (snapshot.exists()) {
+          console.log("register existing")
           return res.status(200).json({
             code: 200,
             message: 'existing',
@@ -106,6 +112,7 @@ app.post("/register", (req, res) => {
             password: data.password,
             mobileNo: data.mobileNo
           })
+          console.log("register success")
           return res.status(200).json({
             code: 200,
             message: "success",
@@ -113,6 +120,7 @@ app.post("/register", (req, res) => {
           })
         }
       }, (error) => {
+        console.log(error)
         return res.status(500).json({
           code: 500,
           message: error.message,
@@ -120,6 +128,7 @@ app.post("/register", (req, res) => {
         })
       })
     } catch (error) {
+      console.log(error)
       return res.status(500).json({
         code: 500,
         message: error.message,
@@ -134,39 +143,63 @@ app.post("/forgetPassword", (req, res) => {
     let request = req.body
     console.log("request", request)
     try {
-      var transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-          user: 'calendarserviceapp@gmail.com',
-          pass: 'hbsfnyactjjeonri'
-        }
-      });
+      const convertEmail = request.email.replaceAll('.', 'DOT')
+      const ref = database.ref("users")
+      const child = ref.child(convertEmail)
+      child.get().then((snapshot) => {
+        console.log(snapshot.val())
+        let data = snapshot.val()
+        let password = data.password
+        if (request.mobileNo == data.mobileNo) {
+          var transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+              user: 'calendarserviceapp@gmail.com',
+              pass: 'hbsfnyactjjeonri'
+            }
+          });
+          var mailOptions = {
+            from: 'calendarserviceapp@gmail.com',
+            to: request.email,
+            subject: 'กู้รหัสผ่านของ Calendar แอพลิเคชั่น',
+            text: 'รหัสผ่านของคุณคือ: ' + Base64.decode(password)
+          };
 
-      var mailOptions = {
-        from: 'calendarserviceapp@gmail.com',
-        to: 'phitchaporn.saw@gmail.com',
-        subject: 'Sending Email using Node.js',
-        text: 'That was easy!'
-      };
-
-      transporter.sendMail(mailOptions, function (error, info) {
-        if (error) {
-          console.log(error);
-          return res.status(200).json({
-            code: 200,
-            message: error.message,
-            result: null
-          })
+          transporter.sendMail(mailOptions, function (error, info) {
+            if (error) {
+              console.log(error);
+              return res.status(200).json({
+                code: 200,
+                message: error.message,
+                result: null
+              })
+            } else {
+              console.log('Email sent: ' + info.response);
+              return res.status(200).json({
+                code: 200,
+                message: "success",
+                result: null
+              })
+            }
+          });
         } else {
-          console.log('Email sent: ' + info.response);
+          console.log("data not match")
           return res.status(200).json({
             code: 200,
-            message: "success",
+            message: "data not match",
             result: null
           })
         }
-      });
+      }, (error) => {
+        console.log("data not found")
+        return res.status(200).json({
+          code: 200,
+          message: "not found",
+          result: null
+        })
+      })
     } catch (error) {
+      console.log(error)
       return res.status(500).json({
         code: 500,
         message: error.message,

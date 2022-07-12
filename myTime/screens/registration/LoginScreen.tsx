@@ -43,8 +43,7 @@ export default function LoginScreen({ navigation }: RootStackScreenProps<'Login'
       let reg = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w\w+)+$/;
       if (reg.test(email) === false) {
         setInValidEmail(true)
-      }
-      else {
+      } else {
         setInValidEmail(false)
         setEmailValid(true)
         setButtonDisabled(!(
@@ -141,6 +140,18 @@ export default function LoginScreen({ navigation }: RootStackScreenProps<'Login'
     }
   }
 
+  function onclickForgotPassword(navigation: any) {
+    setEmailEmpty(false)
+    setPasswordEmpty(false)
+    navigation.navigate('ForgotPassword')
+  }
+
+  function onclickRegisterButton(navigation: any) {
+    setEmailEmpty(false)
+    setPasswordEmpty(false)
+    navigation.navigate('Register')
+  }
+
   return (
     <RootSiblingParent>
       <View style={{ flex: 1 }}>
@@ -235,14 +246,6 @@ export default function LoginScreen({ navigation }: RootStackScreenProps<'Login'
   );
 }
 
-function onclickForgotPassword(navigation: any) {
-  navigation.navigate('ForgotPassword')
-}
-
-function onclickRegisterButton(navigation: any) {
-  navigation.navigate('Register')
-}
-
 const styles = StyleSheet.create({
   container: {
     top: '50%',
@@ -317,8 +320,8 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 10,
-    paddingTop: 4,
-    paddingLeft: 36,
+    top: 4,
+    left: 36,
     color: 'red',
     alignSelf: 'flex-start'
   },

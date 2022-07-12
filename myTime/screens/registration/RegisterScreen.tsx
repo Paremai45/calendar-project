@@ -15,7 +15,7 @@ export default function RegisterScreen({ navigation }: RootStackScreenProps<'Reg
   const [isLoading, setLoading] = useState(false);
   const [isShowedPopup, setShowedPopup] = useState(false);
   const [isShowedToast, setShowedToast] = useState(false);
-  const [isButtonDisabled, setButtonDisabled] = useState(false);
+  const [isButtonDisabled, setButtonDisabled] = useState(true);
   const [isInValidEmail, setInValidEmail] = useState(false);
   const [isEmailEmpty, setEmailEmpty] = useState(false)
   const [isPasswordEmpty, setPasswordEmpty] = useState(false)
