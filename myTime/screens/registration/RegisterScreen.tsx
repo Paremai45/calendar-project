@@ -3,8 +3,8 @@ import { StyleSheet, TouchableHighlight, TouchableOpacity, ScrollView, Alert } f
 import { Text, View } from '../../components/Themed';
 import { useEffect, useState } from 'react';
 import { RootStackScreenProps } from '../../types';
-import Loader from '../Loader';
-import PopupModal from '../Popup'
+import Loader from '../../components/Loader';
+import PopupModal from '../../components/Popup'
 import InteractiveTextInput from 'react-native-text-input-interactive';
 import { Base64 } from 'js-base64';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
@@ -263,6 +263,7 @@ export default function RegisterScreen({ navigation }: RootStackScreenProps<'Reg
               keyboardType='email-address'
               autoCorrect={false}
               spellCheck={false}
+              textContentType='emailAddress'
               onSubmitEditing={() => {
                 validateEmail()
               }}
@@ -287,6 +288,7 @@ export default function RegisterScreen({ navigation }: RootStackScreenProps<'Reg
               onSubmitEditing={() => validatePassword()}
               autoCorrect={false}
               spellCheck={false}
+              textContentType='password'
               textInputStyle={{ backgroundColor: '#f7f9fc' }} />
           </View>
           {isPasswordEmpty && <Text style={styles.errorText}>{emptyMessage}</Text>}
@@ -307,6 +309,7 @@ export default function RegisterScreen({ navigation }: RootStackScreenProps<'Reg
               onSubmitEditing={() => validateRepeatPassword()}
               autoCorrect={false}
               spellCheck={false}
+              textContentType='password'
               textInputStyle={{ backgroundColor: '#f7f9fc' }} />
           </View>
           {isRepeatPasswordEmpty && <Text style={styles.errorText}>{emptyMessage}</Text>}
@@ -323,6 +326,7 @@ export default function RegisterScreen({ navigation }: RootStackScreenProps<'Reg
               onSubmitEditing={() => validateFirstName()}
               autoCorrect={false}
               spellCheck={false}
+              textContentType='name'
               textInputStyle={{ backgroundColor: '#f7f9fc' }} />
           </View>
           {isFirstNameEmpty && <Text style={styles.errorText}>{emptyMessage}</Text>}
@@ -339,6 +343,7 @@ export default function RegisterScreen({ navigation }: RootStackScreenProps<'Reg
               onSubmitEditing={() => validateLastName()}
               autoCorrect={false}
               spellCheck={false}
+              textContentType='name'
               textInputStyle={{ backgroundColor: '#f7f9fc' }} />
           </View>
           {isLastNameEmpty && <Text style={styles.errorText}>{emptyMessage}</Text>}
@@ -356,6 +361,7 @@ export default function RegisterScreen({ navigation }: RootStackScreenProps<'Reg
               onSubmitEditing={() => validateMobileNo()}
               autoCorrect={false}
               spellCheck={false}
+              textContentType='telephoneNumber'
               textInputStyle={{ backgroundColor: '#f7f9fc' }} />
           </View>
           {isMobileNoEmpty && <Text style={styles.errorText}>{emptyMessage}</Text>}

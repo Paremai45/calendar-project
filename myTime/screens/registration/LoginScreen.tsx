@@ -5,13 +5,13 @@ import { useState } from 'react';
 import { RootStackScreenProps } from '../../types';
 import { RootSiblingParent } from 'react-native-root-siblings';
 import Toast from 'react-native-root-toast';
-import Loader from '../Loader';
-import PopupModal from '../Popup'
+import Loader from '../../components/Loader';
+import PopupModal from '../../components/Popup'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
 import { Base64 } from 'js-base64';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export default function LoginScreen({ navigation }: RootStackScreenProps<'Root'>) {
+export default function LoginScreen({ navigation }: RootStackScreenProps<'Login'>) {
   const [isEmailEmpty, setEmailEmpty] = useState(false)
   const [isPasswordEmpty, setPasswordEmpty] = useState(false)
   const [isButtonDisabled, setButtonDisabled] = useState(false);
@@ -29,6 +29,7 @@ export default function LoginScreen({ navigation }: RootStackScreenProps<'Root'>
 
   const [titlePopup, setTitlePopup] = useState("");
   const [messagePopup, setMessagePopup] = useState("");
+  const [toastMessage, setToastMessage] = useState("");
   const invalidEmailMessage = "อีเมลล์ไม่ถูกฟอร์แมต"
   const emptyMessage = "จำเป็นต้องกรอก"
 
@@ -68,11 +69,11 @@ export default function LoginScreen({ navigation }: RootStackScreenProps<'Root'>
 
   function onclickLoginButton() {
     // navigation.navigate('Home')
-    setLoading(true)
     setEmailEmpty(email.length == 0)
     setPasswordEmpty(password.length == 0)
 
     if (isEmailValid && isPasswordValid) {
+      setLoading(true)
       try {
         fetch('https://calendar-mytime.herokuapp.com/login', {
           method: 'POST',
@@ -101,15 +102,27 @@ export default function LoginScreen({ navigation }: RootStackScreenProps<'Root'>
                 // Error saving data
               }
               setTimeout(function () {
-                navigation.push('Home')
-              }, 300);
+                navigation.reset({
+                  index: 0,
+                  routes: [{ name: 'Home' }],
+                });
+              }, 100);
             } else if (code == 200 && message == "passwordIncorrect") {
+              setToastMessage("อีเมลล์หรือรหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง")
               setLoading(false);
               setShowedToast(true)
               setTimeout(function () {
                 setShowedToast(false)
               }, 3000);
               console.log("password incorrect")
+            } else if (code == 200 && message == "notexisting") {
+              setToastMessage("ไม่พบอีเมลล์นี้ในระบบ โปรดลองอีกครั้ง")
+              setLoading(false);
+              setShowedToast(true)
+              setTimeout(function () {
+                setShowedToast(false)
+              }, 3000);
+              console.log("not existing")
             } else {
               setLoading(false);
               setShowedPopup(true)
@@ -125,97 +138,99 @@ export default function LoginScreen({ navigation }: RootStackScreenProps<'Root'>
         setMessagePopup("เกิดข้อผิดพลาดจากทางเซิฟเวอร์ กรุณาลองอีกครั้ง")
         console.error(error);
       }
-    } else {
-
     }
   }
 
   return (
     <RootSiblingParent>
-      <KeyboardAwareScrollView
-        style={{ backgroundColor: 'white' }}
-        scrollEnabled={false}
-        extraScrollHeight={70}>
-        <View style={styles.container}>
-          <Toast
-            opacity={1.0}
-            visible={isShowedToast}
-            position={100}
-            delay={100}
-            animation={true}
-            shadow={true}
-            shadowColor='red'
-            backgroundColor='red'
-          >อีเมลล์หรือรหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง</Toast>
-          <Loader isLoading={isLoading} />
-          <PopupModal open={isShowedPopup}
-            onClose={() => {
-              setShowedPopup(false)
-            }}
-            title={titlePopup}
-            message={messagePopup}
-            buttonTitle={"ตกลง"} />
-          <Text style={styles.title}>แอพลิเคชั่นจัดการตารางเวลา</Text>
-          <Text style={styles.secondSubTitle}>กิจกรรม ตารางเวลา การนัดหมาย</Text>
-          <Text style={styles.secondSubTitle}>ให้แอพลิเคชั่นนี้ช่วยคุณ</Text>
-          <Text style={styles.detailSubTitle}>เอาล่ะ ก่อนอื่น กรุณาล็อคอินหรือสมัครสมาชิกก่อนนะ</Text>
-          <View style={styles.userNameView}>
+      <View style={{ flex: 1 }}>
+        <KeyboardAwareScrollView
+          style={{ backgroundColor: 'white' }}
+          scrollEnabled={false}
+          extraScrollHeight={70}>
+          <View style={styles.container}>
+            <Toast
+              opacity={1.0}
+              visible={isShowedToast}
+              position={100}
+              delay={100}
+              animation={true}
+              shadow={true}
+              shadowColor='red'
+              backgroundColor='red'
+            >{toastMessage}</Toast>
+            <Loader isLoading={isLoading} />
+            <PopupModal open={isShowedPopup}
+              onClose={() => {
+                setShowedPopup(false)
+              }}
+              title={titlePopup}
+              message={messagePopup}
+              buttonTitle={"ตกลง"} />
+            <Text style={styles.title}>แอพลิเคชั่นจัดการตารางเวลา</Text>
+            <Text style={styles.secondSubTitle}>กิจกรรม ตารางเวลา การนัดหมาย</Text>
+            <Text style={styles.secondSubTitle}>ให้แอพลิเคชั่นนี้ช่วยคุณ</Text>
+            <Text style={styles.detailSubTitle}>เอาล่ะ ก่อนอื่น กรุณาล็อคอินหรือสมัครสมาชิกก่อนนะ</Text>
+            <View style={styles.userNameView}>
 
-            <TextInput
-              originalColor={isInValidEmail || isEmailEmpty ? 'red' : ''}
-              placeholder='อีเมลล์'
-              animatedPlaceholderTextColor='#B2B1B9'
-              onChangeText={(text: string) => { setEmail(text) }}
-              returnKeyType='done'
-              onBlur={() => validateEmail()}
-              keyboardType='email-address'
-              autoCorrect={false}
-              spellCheck={false}
-              textInputStyle={{ backgroundColor: '#f7f9fc' }}
-              onSubmitEditing={() => {
-                validateEmail()
-              }} />
+              <TextInput
+                originalColor={isInValidEmail || isEmailEmpty ? 'red' : ''}
+                placeholder='อีเมลล์'
+                animatedPlaceholderTextColor='#B2B1B9'
+                onChangeText={(text: string) => { setEmail(text) }}
+                returnKeyType='done'
+                onBlur={() => validateEmail()}
+                keyboardType='email-address'
+                autoCorrect={false}
+                spellCheck={false}
+                textInputStyle={{ backgroundColor: '#f7f9fc' }}
+                textContentType='emailAddress'
+                onSubmitEditing={() => {
+                  validateEmail()
+                }} />
+            </View>
+            {isInValidEmail && <Text style={styles.errorText}>{invalidEmailMessage}</Text>}
+            {isEmailEmpty && <Text style={styles.errorText}>{emptyMessage}</Text>}
+
+            <View style={styles.passwordView} >
+              <TextInput
+                originalColor={isPasswordEmpty ? 'red' : ''}
+                placeholder='รหัสผ่าน'
+                animatedPlaceholderTextColor='#B2B1B9'
+                onChangeText={(text: string) => { setPassword(text) }}
+                returnKeyType='done'
+                secureTextEntry={isSecureTextEntry}
+                enableIcon={true}
+                iconImageSource={require("../../assets/images/visibility-button.png")}
+                onIconPress={() => { setSecureTextEntry(!isSecureTextEntry) }}
+                onBlur={() => validatePassword()}
+                onSubmitEditing={() => validatePassword()}
+                autoCorrect={false}
+                spellCheck={false}
+                textContentType='password'
+                textInputStyle={{ backgroundColor: '#f7f9fc' }} />
+            </View>
+            {isPasswordEmpty && <Text style={styles.errorText}>{emptyMessage}</Text>}
+
+            <TouchableHighlight
+              underlayColor={'transparent'}
+              style={styles.forgotPasswordTouchable}
+              onPress={() => onclickForgotPassword(navigation)}>
+              <Text style={styles.forgotPasswordTextTouchable}>ลืมรหัสผ่าน?</Text>
+            </TouchableHighlight>
+            <TouchableOpacity
+              style={styles.loginButton}
+              onPress={() => onclickLoginButton()}>
+              <Text style={styles.loginText}>ล็อคอิน</Text>
+            </TouchableOpacity>
           </View>
-          {isInValidEmail && <Text style={styles.errorText}>{invalidEmailMessage}</Text>}
-          {isEmailEmpty && <Text style={styles.errorText}>{emptyMessage}</Text>}
-
-          <View style={styles.passwordView} >
-            <TextInput
-              originalColor={isPasswordEmpty ? 'red' : ''}
-              placeholder='รหัสผ่าน'
-              animatedPlaceholderTextColor='#B2B1B9'
-              onChangeText={(text: string) => { setPassword(text) }}
-              returnKeyType='done'
-              secureTextEntry={isSecureTextEntry}
-              enableIcon={true}
-              iconImageSource={require("../../assets/images/visibility-button.png")}
-              onIconPress={() => { setSecureTextEntry(!isSecureTextEntry) }}
-              onBlur={() => validatePassword()}
-              onSubmitEditing={() => validatePassword()}
-              autoCorrect={false}
-              spellCheck={false}
-              textInputStyle={{ backgroundColor: '#f7f9fc' }} />
-          </View>
-          {isPasswordEmpty && <Text style={styles.errorText}>{emptyMessage}</Text>}
-
-          <TouchableHighlight
-            underlayColor={'transparent'}
-            style={styles.forgotPasswordTouchable}
-            onPress={() => onclickForgotPassword(navigation)}>
-            <Text style={styles.forgotPasswordTextTouchable}>ลืมรหัสผ่าน?</Text>
-          </TouchableHighlight>
-          <TouchableOpacity
-            style={styles.registerButton}
-            onPress={() => onclickRegisterButton(navigation)}>
-            <Text style={styles.registerText}>สมัครสมาชิก</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.loginButton}
-            onPress={() => onclickLoginButton()}>
-            <Text style={styles.loginText}>ล็อคอิน</Text>
-          </TouchableOpacity>
-        </View>
-      </KeyboardAwareScrollView>
+        </KeyboardAwareScrollView>
+        <TouchableOpacity
+          style={styles.registerButton}
+          onPress={() => onclickRegisterButton(navigation)}>
+          <Text style={styles.registerText}>สมัครสมาชิก</Text>
+        </TouchableOpacity>
+      </View>
     </RootSiblingParent>
   );
 }
@@ -235,10 +250,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  loginImage: {
-    width: 250,
-    height: 250,
   },
   title: {
     fontSize: 24,
@@ -273,14 +284,15 @@ const styles = StyleSheet.create({
     color: '#4592AF',
   },
   registerButton: {
-    marginTop: 24,
     borderRadius: 25,
+    bottom: 44,
     backgroundColor: 'transparent',
     color: '#FFFFFF',
-    width: '80%',
-    height: 50,
+    width: '35%',
+    height: 40,
     alignItems: 'center',
     justifyContent: 'center',
+    alignSelf: 'center',
     borderColor: '#B2B1B9',
     borderWidth: 1,
   },
@@ -290,7 +302,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   loginButton: {
-    marginTop: 16,
+    top: 16,
     borderRadius: 25,
     backgroundColor: '#8CC0DE',
     width: '80%',

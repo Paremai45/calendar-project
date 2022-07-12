@@ -3,6 +3,8 @@ import bodyParser from 'body-parser';
 import { initializeApp } from "firebase/app";
 import { getDatabase, ref, child, get, set } from "firebase/database";
 import nodemailer from 'nodemailer';
+import admin from 'firebase-admin'
+import { createRequire } from "module"
 
 // InitialApp
 const app = express();
@@ -10,11 +12,15 @@ app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
 
 // Initial Firebase
+const require = createRequire(import.meta.url);
+const serviceAccount = require('./serviceAccountKey.json');
 const firebaseConfig = {
-  databaseURL: "https://calendar-88c48-default-rtdb.asia-southeast1.firebasedatabase.app/"
-}
-const firebase = initializeApp(firebaseConfig);
-const database = getDatabase(firebase);
+  credential: admin.credential.cert(serviceAccount),
+  databaseURL: "https://calendar-88c48-default-rtdb.asia-southeast1.firebasedatabase.app",
+};
+admin.initializeApp(firebaseConfig)
+// const firebase = initializeApp(firebaseConfig);
+const database = admin.database()
 
 // Endpoints
 app.post("/login", (req, res) => {
@@ -25,43 +31,44 @@ app.post("/login", (req, res) => {
     console.log("request", request)
     try {
       const convertEmail = reqEmail.replaceAll('.', 'DOT')
-      get(ref(database, 'users/' + convertEmail))
-        .then((snapshot) => {
-          if (snapshot.exists()) {
-            let value = snapshot.val()
-            let hashPassword = value.password
-            if (hashPassword == reqPassword) {
-              return res.status(200).json({
-                code: 200,
-                message: 'success',
-                result: {
-                  email: value.email,
-                  firstname: value.firstname,
-                  lastname: value.lastname,
-                  mobileNo: value.mobileNo
-                }
-              })
-            } else {
-              return res.status(200).json({
-                code: 200,
-                message: 'passwordIncorrect',
-                result: null
-              })
-            }
+      const ref = database.ref("users")
+      const child = ref.child(convertEmail)
+      child.get().then((snapshot) => {
+        if (snapshot.exists()) {
+          let value = snapshot.val()
+          let hashPassword = value.password
+          if (hashPassword == reqPassword) {
+            return res.status(200).json({
+              code: 200,
+              message: 'success',
+              result: {
+                email: value.email,
+                firstname: value.firstname,
+                lastname: value.lastname,
+                mobileNo: value.mobileNo
+              }
+            })
           } else {
             return res.status(200).json({
               code: 200,
-              message: 'notexisting',
+              message: 'passwordIncorrect',
               result: null
             })
           }
-        }).catch((error) => {
-          return res.status(500).json({
-            code: 500,
-            message: error.message,
+        } else {
+          return res.status(200).json({
+            code: 200,
+            message: 'notexisting',
             result: null
           })
+        }
+      }, (error) => {
+        return res.status(500).json({
+          code: 500,
+          message: error.message,
+          result: null
         })
+      })
     } catch (error) {
       return res.status(500).json({
         code: 500,
@@ -79,34 +86,39 @@ app.post("/register", (req, res) => {
     console.log("request", request)
     try {
       const convertEmail = data.email.replaceAll('.', 'DOT')
-      get(ref(database, 'users/' + convertEmail))
-        .then((snapshot) => {
-          if (snapshot.exists()) {
-            return res.status(200).json({
-              code: 200,
-              message: 'existing',
-              result: null
-            })
-          } else {
-            set(ref(database, 'users/' + convertEmail), {
-              firstname: data.firstname,
-              lastname: data.lastname,
-              password: data.password,
-              mobileNo: data.mobileNo
-            })
-            return res.status(200).json({
-              code: 200,
-              message: "success",
-              result: null
-            })
-          }
-        }).catch((error) => {
-          return res.status(500).json({
-            code: 500,
-            message: error.message,
+      const ref = database.ref("users")
+      const child = ref.child(convertEmail)
+      console.log(convertEmail)
+      child.get().then((snapshot) => {
+        console.log(snapshot.val())
+        console.log(snapshot.exists())
+        if (snapshot.exists()) {
+          return res.status(200).json({
+            code: 200,
+            message: 'existing',
             result: null
           })
+        } else {
+          child.set({
+            email: data.email,
+            firstname: data.firstname,
+            lastname: data.lastname,
+            password: data.password,
+            mobileNo: data.mobileNo
+          })
+          return res.status(200).json({
+            code: 200,
+            message: "success",
+            result: null
+          })
+        }
+      }, (error) => {
+        return res.status(500).json({
+          code: 500,
+          message: error.message,
+          result: null
         })
+      })
     } catch (error) {
       return res.status(500).json({
         code: 500,
