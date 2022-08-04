@@ -1,4 +1,4 @@
-import { StyleSheet, TouchableHighlight, TouchableOpacity } from 'react-native';
+import { KeyboardAvoidingView, Platform, StyleSheet, TouchableHighlight, TouchableOpacity } from 'react-native';
 import { Text, View } from '../../components/Themed';
 import TextInput from "react-native-text-input-interactive";
 import { useState } from 'react';
@@ -7,7 +7,6 @@ import { RootSiblingParent } from 'react-native-root-siblings';
 import Toast from 'react-native-root-toast';
 import Loader from '../../components/Loader';
 import PopupModal from '../../components/Popup'
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
 import { Base64 } from 'js-base64';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -155,10 +154,9 @@ export default function LoginScreen({ navigation }: RootStackScreenProps<'Login'
   return (
     <RootSiblingParent>
       <View style={{ flex: 1 }}>
-        <KeyboardAwareScrollView
-          style={{ backgroundColor: 'white' }}
-          scrollEnabled={false}
-          extraScrollHeight={70}>
+        <KeyboardAvoidingView
+          style={{ backgroundColor: 'white', flex: 1, justifyContent: 'center' }}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
           <View style={styles.container}>
             <Toast
               opacity={1.0}
@@ -235,7 +233,7 @@ export default function LoginScreen({ navigation }: RootStackScreenProps<'Login'
               <Text style={styles.loginText}>ล็อคอิน</Text>
             </TouchableOpacity>
           </View>
-        </KeyboardAwareScrollView>
+        </KeyboardAvoidingView>
         <TouchableOpacity
           style={styles.registerButton}
           onPress={() => onclickRegisterButton(navigation)}>
@@ -248,8 +246,6 @@ export default function LoginScreen({ navigation }: RootStackScreenProps<'Login'
 
 const styles = StyleSheet.create({
   container: {
-    top: '50%',
-    bottom: '50%',
     backgroundColor: 'transparent',
     justifyContent: 'center',
     alignItems: 'center',
@@ -288,7 +284,7 @@ const styles = StyleSheet.create({
   },
   registerButton: {
     borderRadius: 25,
-    bottom: 44,
+    bottom: 40,
     backgroundColor: 'transparent',
     color: '#FFFFFF',
     width: '35%',

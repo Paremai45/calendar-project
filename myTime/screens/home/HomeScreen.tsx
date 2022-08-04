@@ -5,7 +5,6 @@ import { Component } from 'react';
 import { Calendar, CalendarList, Agenda } from 'react-native-calendars';
 import { LocaleConfig } from 'react-native-calendars';
 
-
 export default function HomeScreen({ navigation }: RootTabScreenProps<'HomeScreen'>) {
   return (
     <HomeScreenClass />
@@ -15,6 +14,14 @@ export default function HomeScreen({ navigation }: RootTabScreenProps<'HomeScree
 class HomeScreenClass extends Component {
   constructor(props: any) {
     super(props);
+    LocaleConfig.locales.en = LocaleConfig.locales['']
+    LocaleConfig.locales.fr = {
+      monthNames: ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤกษภาคม', 'มิถุนายน', 'กรกฏาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'],
+      monthNamesShort: ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พฤ.ย.', 'ธ.ค.'],
+      dayNames: ['อาทิตย์', 'จันทร์', 'อังคาร', 'พุธ', 'พฤหัส', 'ศุกร์', 'เสาร์'],
+      dayNamesShort: ['อ.', 'จ.', 'อ.', 'พ.', 'พฤ.', 'ศ.', 'ส.'],
+    };
+    LocaleConfig.defaultLocale = 'fr'
   }
 
   render() {
