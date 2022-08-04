@@ -8,7 +8,7 @@ import ActionButton from 'react-native-action-button';
 
 export default function HomeScreen({ navigation }: RootTabScreenProps<'HomeScreen'>) {
   return (
-    <HomeScreenClass> {navigation} </HomeScreenClass>
+    <HomeScreenClass navigation={navigation} />
   )
 }
 
@@ -101,7 +101,8 @@ class HomeScreenClass extends Component {
           <FlatList
             data={this.state.data}
             renderItem={this.renderItem}
-            keyExtractor={item => item.name} />
+            keyExtractor={item => item.name}
+            contentContainerStyle={{ paddingBottom: 100 }} />
         </View>
         <ActionButton
           buttonColor="rgba(140, 192, 222, 1)"
@@ -110,19 +111,8 @@ class HomeScreenClass extends Component {
         />
       </View>
     );
-    // return (<View style={{ backgroundColor: 'white', flex: 1 }}></View>);
   }
 }
-
-// class HomeScreenClass extends Component {
-//   constructor(props: any) {
-//     super(props);
-//   }
-
-//   render() {
-//     return ();
-//   }
-// }
 
 const styles = StyleSheet.create({
   container: {
