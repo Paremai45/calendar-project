@@ -18,6 +18,7 @@ export type RootStackParamList = {
   Register: undefined;
   ForgotPassword: undefined;
   Home: NavigatorScreenParams<RootTabParamList> | undefined;
+  AddEvent: undefined;
   Modal: undefined;
   NotFound: undefined;
 };

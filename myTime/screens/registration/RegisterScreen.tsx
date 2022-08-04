@@ -355,7 +355,7 @@ export default function RegisterScreen({ navigation }: RootStackScreenProps<'Reg
               originalColor={isMobileNoEmpty ? 'red' : ''}
               placeholder='เบอร์โทรศัพท์ในการติดต่อ'
               animatedPlaceholderTextColor='#B2B1B9'
-              onChangeText={(text: string) => { setMobileNo(text) }}
+              onChangeText={(text: string) => { setMobileNo(text.replace(/[^0-9]/g, '')) }}
               returnKeyType='done'
               onBlur={() => validateMobileNo()}
               keyboardType='number-pad'
@@ -364,6 +364,7 @@ export default function RegisterScreen({ navigation }: RootStackScreenProps<'Reg
               spellCheck={false}
               maxLength={10}
               textContentType='telephoneNumber'
+              value={mobileNo}
               textInputStyle={{ backgroundColor: '#f7f9fc' }} />
           </View>
           {isMobileNoEmpty && <Text style={styles.errorText}>{emptyMessage}</Text>}

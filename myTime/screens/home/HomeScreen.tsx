@@ -1,14 +1,15 @@
 import { FlatList, StyleSheet, TouchableOpacity } from 'react-native';
 import { Text, View } from '../../components/Themed';
 import { RootTabScreenProps } from '../../types';
-import { Component } from 'react';
+import { Component, useEffect, useState } from 'react';
 import { Calendar, CalendarList, Agenda } from 'react-native-calendars';
 import { LocaleConfig } from 'react-native-calendars';
+import ActionButton from 'react-native-action-button';
 
 export default function HomeScreen({ navigation }: RootTabScreenProps<'HomeScreen'>) {
   return (
-    <HomeScreenClass />
-  );
+    <HomeScreenClass> {navigation} </HomeScreenClass>
+  )
 }
 
 class HomeScreenClass extends Component {
@@ -44,6 +45,10 @@ class HomeScreenClass extends Component {
 
   onclickItem = (item) => {
     console.log(item)
+  }
+
+  onclickAddEventButton = () => {
+    this.props.navigation.navigate('AddEvent')
   }
 
   renderItem = ({ item }) => {
@@ -98,10 +103,26 @@ class HomeScreenClass extends Component {
             renderItem={this.renderItem}
             keyExtractor={item => item.name} />
         </View>
+        <ActionButton
+          buttonColor="rgba(140, 192, 222, 1)"
+          shadowStyle={{ shadowColor: "rgba(140, 192, 222, 1)", }}
+          onPress={() => { this.onclickAddEventButton() }}
+        />
       </View>
     );
+    // return (<View style={{ backgroundColor: 'white', flex: 1 }}></View>);
   }
 }
+
+// class HomeScreenClass extends Component {
+//   constructor(props: any) {
+//     super(props);
+//   }
+
+//   render() {
+//     return ();
+//   }
+// }
 
 const styles = StyleSheet.create({
   container: {

@@ -8,7 +8,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import * as React from 'react';
-import { ColorSchemeName, Pressable, View } from 'react-native';
+import { Button, ColorSchemeName, Pressable, TouchableHighlight, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useState, useEffect, useMemo } from 'react';
 
@@ -19,12 +19,14 @@ import NotFoundScreen from '../screens/NotFoundScreen';
 import TabTwoScreen from '../screens/TabTwoScreen';
 import { RootStackParamList, RootTabParamList, RootTabScreenProps } from '../types';
 import LinkingConfiguration from './LinkingConfiguration';
+import { Text } from '../components/Themed';
 
 // Screens
 import LoginScreen from '../screens/registration/LoginScreen';
 import RegisterScreen from '../screens/registration/RegisterScreen';
 import ForgotPasswordScreen from '../screens/registration/ForgotPassword';
 import HomeScreen from '../screens/home/HomeScreen';
+import AddEventScreen from '../screens/home/AddEventScreen';
 
 export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeName }) {
   const [isLogin, setLogin] = useState(false)
@@ -86,11 +88,21 @@ function LoginRootNavigator() {
       <Stack.Group screenOptions={{ presentation: 'modal' }}>
         <Stack.Screen name="Modal" component={ModalScreen} />
       </Stack.Group>
+      <Stack.Group>
+        <Stack.Screen name="AddEvent" component={AddEventScreen} options={{ headerShown: true, title: "", headerShadowVisible: false, headerBackTitleVisible: false, headerTintColor: 'black' }} />
+      </Stack.Group>
     </Stack.Navigator>
   );
 }
 
 function HomeRootNavigator() {
+  const CloseButton = () => {
+    let test =
+      <TouchableHighlight>
+        <Text>Test</Text>
+      </TouchableHighlight>
+    return test
+  }
   return (
     <Stack.Navigator initialRouteName='Home'>
       <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
@@ -100,6 +112,18 @@ function HomeRootNavigator() {
       <Stack.Screen name="NotFound" component={NotFoundScreen} options={{ title: 'Oops!', }} />
       <Stack.Group screenOptions={{ presentation: 'modal' }}>
         <Stack.Screen name="Modal" component={ModalScreen} />
+      </Stack.Group>
+      <Stack.Group screenOptions={{ presentation: 'fullScreenModal' }}>
+        <Stack.Screen
+          name="AddEvent"
+          component={AddEventScreen}
+          options={{
+            headerShown: true,
+            title: "",
+            headerShadowVisible: false,
+            headerBackTitleVisible: false,
+            headerTintColor: 'black',
+          }} />
       </Stack.Group>
     </Stack.Navigator>
   );

@@ -59,7 +59,6 @@ app.post("/login", (req, res) => {
             })
           }
         } else {
-          console.log(error)
           return res.status(200).json({
             code: 200,
             message: 'notexisting',
@@ -67,6 +66,7 @@ app.post("/login", (req, res) => {
           })
         }
       }, (error) => {
+        console.log(error)
         return res.status(500).json({
           code: 500,
           message: error.message,
@@ -95,9 +95,9 @@ app.post("/register", (req, res) => {
       const child = ref.child(convertEmail)
       console.log(convertEmail)
       child.get().then((snapshot) => {
-        console.log(snapshot.val())
         console.log(snapshot.exists())
         if (snapshot.exists()) {
+          console.log("response from Firebase" + snapshot.val())
           console.log("register existing")
           return res.status(200).json({
             code: 200,
@@ -147,46 +147,55 @@ app.post("/forgetPassword", (req, res) => {
       const ref = database.ref("users")
       const child = ref.child(convertEmail)
       child.get().then((snapshot) => {
-        console.log(snapshot.val())
-        let data = snapshot.val()
-        let password = data.password
-        if (request.mobileNo == data.mobileNo) {
-          var transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth: {
-              user: 'calendarserviceapp@gmail.com',
-              pass: 'hbsfnyactjjeonri'
-            }
-          });
-          var mailOptions = {
-            from: 'calendarserviceapp@gmail.com',
-            to: request.email,
-            subject: 'กู้รหัสผ่านของ Calendar แอพลิเคชั่น',
-            text: 'รหัสผ่านของคุณคือ: ' + Base64.decode(password)
-          };
+        if (snapshot.exists()) {
+          console.log("response from Firebase" + snapshot.val())
+          let data = snapshot.val()
+          let password = data.password
+          if (request.mobileNo == data.mobileNo) {
+            var transporter = nodemailer.createTransport({
+              service: 'gmail',
+              auth: {
+                user: 'calendarserviceapp@gmail.com',
+                pass: 'hbsfnyactjjeonri'
+              }
+            });
+            var mailOptions = {
+              from: 'calendarserviceapp@gmail.com',
+              to: request.email,
+              subject: 'กู้รหัสผ่านของ Calendar แอพลิเคชั่น',
+              text: 'รหัสผ่านของคุณคือ: ' + Base64.decode(password)
+            };
 
-          transporter.sendMail(mailOptions, function (error, info) {
-            if (error) {
-              console.log(error);
-              return res.status(200).json({
-                code: 200,
-                message: error.message,
-                result: null
-              })
-            } else {
-              console.log('Email sent: ' + info.response);
-              return res.status(200).json({
-                code: 200,
-                message: "success",
-                result: null
-              })
-            }
-          });
+            transporter.sendMail(mailOptions, function (error, info) {
+              if (error) {
+                console.log(error);
+                return res.status(200).json({
+                  code: 200,
+                  message: error.message,
+                  result: null
+                })
+              } else {
+                console.log('Email sent: ' + info.response);
+                return res.status(200).json({
+                  code: 200,
+                  message: "success",
+                  result: null
+                })
+              }
+            });
+          } else {
+            console.log("data not match")
+            return res.status(200).json({
+              code: 200,
+              message: "data not match",
+              result: null
+            })
+          }
         } else {
-          console.log("data not match")
+          console.log("data not found")
           return res.status(200).json({
             code: 200,
-            message: "data not match",
+            message: "not found",
             result: null
           })
         }
