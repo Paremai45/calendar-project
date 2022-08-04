@@ -25,16 +25,16 @@ class HomeScreenClass extends Component {
     LocaleConfig.defaultLocale = 'fr'
     this.state = {
       data: [
-        { name: "ประชุมกับเพื่อน", isTitle: true, time: "16:40", detail: "คุยเรื่องโปรเจกต์จบ" },
-        { name: "Angular", isTitle: false, time: "8:40", detail: "คุยเรื่องโปรเจกต์จบ" },
-        { name: "ReactJS", isTitle: false, time: "8:40", detail: "คุยเรื่องโปรเจกต์จบ" },
-        { name: "VueJS", isTitle: false, time: "8:40", detail: "คุยเรื่องโปรเจกต์จบ" },
-        { name: "ReactNative", isTitle: false, time: "8:40", detail: "คุยเรื่องโปรเจกต์จบ" },
-        { name: "PHP Frameworks", isTitle: true, time: "8:40", detail: "คุยเรื่องโปรเจกต์จบ" },
-        { name: "Laravel", isTitle: false, time: "8:40", detail: "คุยเรื่องโปรเจกต์จบ" },
-        { name: "CodeIgniter", isTitle: false, time: "8:40", detail: "คุยเรื่องโปรเจกต์จบ" },
-        { name: "CakePHP", isTitle: false, time: "8:40", detail: "คุยเรื่องโปรเจกต์จบ" },
-        { name: "Symfony", isTitle: false, time: "8:40", detail: "คุยเรื่องโปรเจกต์จบ" }
+        { name: "ประชุมกับเพื่อน", isTitle: true, time: "9:40", detail: "คุยเรื่องโปรเจกต์จบ" },
+        { name: "ประชุมกับพ่อ", isTitle: false, time: "10:40", detail: "คุยเรื่องเงิน" },
+        { name: "ประชุมกับแม่", isTitle: false, time: "11:40", detail: "คุยเรื่องเรียน" },
+        { name: "ประชุมกับอาจารย์", isTitle: false, time: "12:40", detail: "คุยเรื่องโปรเจกต์จบ" },
+        { name: "ประชุมกับอาจารย์ใหญ่", isTitle: false, time: "13:40", detail: "คุยเรื่องโปรเจกต์จบ" },
+        { name: "พูดคุยเล่นๆกับเพื่อนๆ", isTitle: true, time: "14:40", detail: "คุยเล่น" },
+        { name: "นัดไปเที่ยวกับเพื่อน", isTitle: false, time: "15:40", detail: "ไปโรงหนัง" },
+        { name: "นัดไปต่างจังหวัดกับเพื่อน", isTitle: false, time: "16:40", detail: "ไปเชียงใหม่" },
+        { name: "ต้องไปกรุงเทพ", isTitle: false, time: "17:40", detail: "ไปหาของกินเล่น" },
+        { name: "ต้องไปเชียงใหม่", isTitle: false, time: "18:40", detail: "ไปดูหมีแพนด้า" }
       ]
     };
   }
