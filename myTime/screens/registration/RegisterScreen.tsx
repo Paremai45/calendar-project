@@ -57,7 +57,7 @@ export default function RegisterScreen({ navigation }: RootStackScreenProps<'Reg
           },
           body: JSON.stringify({
             "data": {
-              "email": email,
+              "email": email.toLowerCase(),
               "firstname": firstName,
               "lastname": lastName,
               "password": Base64.encode(password),
@@ -223,8 +223,9 @@ export default function RegisterScreen({ navigation }: RootStackScreenProps<'Reg
     <RootSiblingParent>
       <KeyboardAwareScrollView
         style={{ backgroundColor: 'white' }}
-        scrollEnabled={false}
-        extraScrollHeight={70}>
+        scrollEnabled={true}
+        contentContainerStyle={{ flex: 1, justifyContent: 'center' }}
+        extraScrollHeight={130}>
         {/* <ScrollView contentContainerStyle={{
         flexGrow: 1,
         justifyContent: 'center',
@@ -361,6 +362,7 @@ export default function RegisterScreen({ navigation }: RootStackScreenProps<'Reg
               onSubmitEditing={() => validateMobileNo()}
               autoCorrect={false}
               spellCheck={false}
+              maxLength={10}
               textContentType='telephoneNumber'
               textInputStyle={{ backgroundColor: '#f7f9fc' }} />
           </View>
@@ -384,7 +386,6 @@ function onclickBackButton(navigation: any) {
 
 const styles = StyleSheet.create({
   container: {
-    top: 32,
     backgroundColor: 'transparent',
     justifyContent: 'center',
     alignItems: 'center',
