@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { FlatList, StyleSheet, TouchableOpacity } from 'react-native';
 import { Text, View } from '../../components/Themed';
 import { RootTabScreenProps } from '../../types';
@@ -5,13 +6,13 @@ import { Component, useEffect, useState } from 'react';
 import { Calendar, CalendarList, Agenda } from 'react-native-calendars';
 import { LocaleConfig } from 'react-native-calendars';
 import ActionButton from 'react-native-action-button';
+import moment from 'moment';
 
 export default function HomeScreen({ navigation }: RootTabScreenProps<'HomeScreen'>) {
   return (
     <HomeScreenClass navigation={navigation} />
   )
 }
-
 class HomeScreenClass extends Component {
   constructor(props: any) {
     super(props);
@@ -50,15 +51,36 @@ class HomeScreenClass extends Component {
         {
           markedData: '2022-08-06',
           selected: false,
-          selectedColor: 'pink',
+          selectedColor: 'orange',
           dots: [
             { key: 'vacation', color: 'red', selectedDotColor: 'red' },
             { key: 'massage', color: 'blue', selectedDotColor: 'blue' },
             { key: 'workout', color: 'green', selectedDotColor: 'green' }
           ]
         }
-      ]
+      ],
+      dateObjects: {},
+      oldSelectedDate: "",
+      currentDate: "",
+      selectedDate: ""
     };
+    this.state.calendarData.forEach((calendarItem) => {
+      this.state.dateObjects[calendarItem.markedData] = {
+        selected: calendarItem.selected,
+        selectedColor: calendarItem.selectedColor,
+        dots: calendarItem.dots
+      }
+    })
+
+    // Handle dates
+    let currentDate = moment().format("YYYY/MM/DD")
+    this.state.currentDate = currentDate.split('/').join('-')
+    this.state.selectedDate = moment().format("DD/MM/YYYY")
+  }
+
+  componentDidMount() {
+    // GET Calendar data
+
   }
 
   onclickSeeAll = () => {
@@ -91,16 +113,6 @@ class HomeScreenClass extends Component {
     );
   };
   render() {
-    let dates = {}
-    this.state.calendarData.forEach((calendarItem) => {
-      dates[calendarItem.markedData] = {
-        selected: calendarItem.selected,
-        selectedColor: calendarItem.selectedColor,
-        dots: calendarItem.dots,
-        customStyles: calendarItem.customStyles
-      }
-    })
-    console.log(dates)
     return (
       <View style={styles.container}>
         <View style={styles.firstView}>
@@ -112,10 +124,43 @@ class HomeScreenClass extends Component {
             //   '2022-06-18': { marked: true, dotColor: 'red', activeOpacity: 0 },
             //   '2022-06-19': { disabled: true, disableTouchEvent: true }
             // }}
+            hideExtraDays={true}
             markingType={'multi-dot'}
-            markedDates={dates}
+            markedDates={this.state.dateObjects}
             onDayPress={day => {
-              console.log('selected day', day)
+              if (this.state.currentDate != day.dateString) {
+                if (this.state.oldSelectedDate != "") {
+                  if (this.state.oldSelectedDate != day.dateString) {
+                    this.state.dateObjects[this.state.oldSelectedDate].selected = false
+                  }
+                }
+
+                if (this.state.dateObjects[day.dateString] == undefined) {
+                  this.state.dateObjects[day.dateString] = {
+                    selected: true,
+                    selectedColor: 'orange',
+                  }
+                } else if (this.state.dateObjects[day.dateString] != undefined) {
+                  this.state.dateObjects[day.dateString].selected = !this.state.dateObjects[day.dateString].selected
+                }
+
+                // Update
+                this.setState({ dateObjects: this.state.dateObjects })
+                this.setState({ oldSelectedDate: day.dateString })
+              } else {
+                this.state.dateObjects[this.state.oldSelectedDate].selected = false
+                this.setState({ oldSelectedDate: "" })
+              }
+
+              if (this.state.dateObjects[day.dateString].selected) {
+                this.state.selectedDate = moment(day.dateString).format("DD/MM/YYYY")
+                this.setState({ selectedDate: moment(day.dateString).format("DD/MM/YYYY") })
+              } else {
+                this.state.selectedDate = moment().format("DD/MM/YYYY")
+                this.setState({ selectedDate: moment().format("DD/MM/YYYY") })
+              }
+
+              console.log("selectedDate", this.state.selectedDate)
             }}
             theme={{
               'stylesheet.day.basic': {
@@ -137,7 +182,7 @@ class HomeScreenClass extends Component {
         <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
         <View style={{ backgroundColor: '#f6f6f6', flex: 1 }}>
           <View style={styles.headerItem}>
-            <Text style={styles.titleEvent}>กิจกรรมในวันที่ 4/08/2022</Text>
+            <Text style={styles.titleEvent}>กิจกรรมในวันที่ {this.state.selectedDate}</Text>
             <TouchableOpacity
               style={styles.seeAll}
               onPress={() => this.onclickSeeAll()}>

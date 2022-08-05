@@ -79,7 +79,7 @@ export default function LoginScreen({ navigation }: RootStackScreenProps<'Login'
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            "email": email,
+            "email": email.toLowerCase(),
             "password": Base64.encode(password)
           })
         })
@@ -95,6 +95,10 @@ export default function LoginScreen({ navigation }: RootStackScreenProps<'Login'
                 AsyncStorage.setItem(
                   '@Login',
                   JSON.stringify({ isLogin: true })
+                );
+                AsyncStorage.setItem(
+                  '@Email',
+                  JSON.stringify({ email: email.toLowerCase() })
                 );
               } catch (error) {
                 // Error saving data

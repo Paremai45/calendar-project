@@ -118,10 +118,10 @@ function HomeRootNavigator() {
           name="AddEvent"
           component={AddEventScreen}
           options={{
-            headerShown: true,
+            headerShown: false,
             title: "",
-            headerShadowVisible: false,
-            headerBackTitleVisible: false,
+            headerShadowVisible: true,
+            headerBackTitleVisible: true,
             headerTintColor: 'black',
           }} />
       </Stack.Group>

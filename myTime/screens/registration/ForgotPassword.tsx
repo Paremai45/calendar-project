@@ -42,7 +42,7 @@ export default function ForgotPasswordScreen({ navigation }: RootStackScreenProp
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            "email": email,
+            "email": email.toLowerCase(),
             "mobileNo": mobileNo
           })
         })
@@ -163,7 +163,7 @@ export default function ForgotPasswordScreen({ navigation }: RootStackScreenProp
             autoCorrect={false}
             spellCheck={false}
             textContentType='telephoneNumber'
-            maxLength={12}
+            maxLength={10}
             value={mobileNo}
             textInputStyle={{ backgroundColor: '#f7f9fc' }} />
         </View>

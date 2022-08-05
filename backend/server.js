@@ -218,6 +218,84 @@ app.post("/forgetPassword", (req, res) => {
   })()
 })
 
+app.post("/events", (req, res) => {
+  (async () => {
+    let request = req.body
+    console.log("request", request)
+    try {
+      const convertEmail = request.email.replaceAll('.', 'DOT')
+      const ref = database.ref("events")
+      const child = ref.child(convertEmail)
+      child.get().then((snapshot) => {
+        if (snapshot.exists()) {
+          console.log("response from Firebase" + snapshot.val())
+
+        } else {
+          console.log("data not found")
+          return res.status(200).json({
+            code: 200,
+            message: "not found",
+            result: null
+          })
+        }
+      }, (error) => {
+        console.log("data not found")
+        return res.status(200).json({
+          code: 200,
+          message: "not found",
+          result: null
+        })
+      })
+    } catch (error) {
+      console.log(error)
+      return res.status(500).json({
+        code: 500,
+        message: error.message,
+        result: null
+      })
+    }
+  })()
+})
+
+app.post("/addevent", (req, res) => {
+  (async () => {
+    let request = req.body
+    console.log("request", request)
+    try {
+      const convertEmail = request.email.replaceAll('.', 'DOT')
+      const ref = database.ref("events")
+      const child = ref.child(convertEmail)
+      child.get().then((snapshot) => {
+        if (snapshot.exists()) {
+          console.log("response from Firebase" + snapshot.val())
+
+        } else {
+          console.log("data not found")
+          return res.status(200).json({
+            code: 200,
+            message: "not found",
+            result: null
+          })
+        }
+      }, (error) => {
+        console.log("data not found")
+        return res.status(200).json({
+          code: 200,
+          message: "not found",
+          result: null
+        })
+      })
+    } catch (error) {
+      console.log(error)
+      return res.status(500).json({
+        code: 500,
+        message: error.message,
+        result: null
+      })
+    }
+  })()
+})
+
 // Initialzed port
 app.listen(process.env.PORT || 4000, '0.0.0.0', () => {
   console.log(`server running on port ${process.env.PORT}`)
