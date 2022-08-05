@@ -1,13 +1,14 @@
 // @ts-nocheck
-import { FlatList, StyleSheet, TouchableOpacity } from 'react-native';
+import { FlatList, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { Text, View } from '../../components/Themed';
 import { RootTabScreenProps } from '../../types';
 import { Component } from 'react';
-import { Calendar } from 'react-native-calendars';
+import { Calendar, DateData } from 'react-native-calendars';
 import { LocaleConfig } from 'react-native-calendars';
 import ActionButton from 'react-native-action-button';
 import moment from 'moment';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Loader from '../../components/Loader';
 
 export default function HomeScreen({ navigation }: RootTabScreenProps<'HomeScreen'>) {
   return (
@@ -31,25 +32,15 @@ class HomeScreenClass extends Component {
       dateObjects: {},
       oldSelectedDate: "",
       currentDate: "",
-      selectedDate: "",
-      isLoading: false
+      selectedDateOnClick: "",
+      selectedDateShowing: "",
+      isLoading: false,
+      isEventsListEmpty: false
     };
-    this.state.calendarList.forEach((calendarItem) => {
-      this.state.dateObjects[calendarItem.markedData] = {
-        selected: calendarItem.selected,
-        selectedColor: calendarItem.selectedColor,
-        dots: calendarItem.dots
-      }
-    })
-
     // Handle dates
     let currentDate = moment().format("YYYY/MM/DD")
     this.state.currentDate = currentDate.split('/').join('-')
     this.state.selectedDate = moment().format("DD/MM/YYYY")
-
-    console.log(this.state.eventsList)
-    console.log(this.state.calendarList)
-    console.log(this.state.dateObjects)
   }
 
   componentDidMount() {
@@ -58,45 +49,61 @@ class HomeScreenClass extends Component {
     this.setState({ isLoading: true })
     AsyncStorage.getItem('@Email', (err, result) => {
       try {
-        fetch('https://calendar-mytime.herokuapp.com/events', {
+        fetch('https://calendar-mytime.herokuapp.com/getEventsByDate', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
             "email": JSON.parse(result).email.toLowerCase(),
+            "selectedDate": this.state.currentDate
           })
         })
           .then((response) => response.json())
           .then((json) => {
             let code = json.code
             let message = json.message
-            console.log(json)
             if (code == 200 && message == "success") {
               console.log("get events success")
               this.setState({ isLoading: false })
+              this.setState({ isEventsListEmpty: false })
+              if (json.result.eventsList == undefined) {
+                this.setState({ isEventsListEmpty: true })
+              }
               this.setState({ eventsList: json.result.eventsList })
               this.setState({ calendarList: json.result.calendarList })
+
+              this.state.calendarList.forEach((calendarItem) => {
+                this.state.dateObjects[calendarItem.markedData] = {
+                  selected: calendarItem.selected,
+                  selectedColor: calendarItem.selectedColor,
+                  dots: calendarItem.dots
+                }
+              })
+
+              this.setState({ dateObjects: this.state.dateObjects })
             } else {
+              console.log("not found data")
               this.setState({ isLoading: false })
-              // setShowedPopup(true)
-              // setTitlePopup("ขออภัยในความไม่สะดวก")
-              // setMessagePopup("เกิดข้อผิดพลาดจากทางเซิฟเวอร์ กรุณาลองอีกครั้ง")
-              console.log("server error")
+              this.setState({ isEventsListEmpty: true })
+              this.state.dateObjects[this.state.currentDate] = {
+                selected: true,
+                selectedColor: 'pink'
+              }
+              this.setState({ dateObjects: this.state.dateObjects })
             }
           })
       } catch (error) {
+        console.log("not found data")
         this.setState({ isLoading: false })
-        // setShowedPopup(true)
-        // setTitlePopup("ขออภัยในความไม่สะดวก")
-        // setMessagePopup("เกิดข้อผิดพลาดจากทางเซิฟเวอร์ กรุณาลองอีกครั้ง")
-        console.error(error);
+        this.setState({ isEventsListEmpty: true })
+        this.state.dateObjects[this.state.currentDate] = {
+          selected: true,
+          selectedColor: 'pink'
+        }
+        this.setState({ dateObjects: this.state.dateObjects })
       }
     })
-  }
-
-  onclickSeeAll = () => {
-    console.log("onclickSeeAll")
   }
 
   onclickItem = (item) => {
@@ -105,6 +112,55 @@ class HomeScreenClass extends Component {
 
   onclickAddEventButton = () => {
     this.props.navigation.navigate('AddEvent')
+  }
+
+  onclickDates = () => {
+    console.log("selectedDateOnClick", this.state.selectedDateOnClick)
+    this.setState({ eventsList: [] })
+    this.setState({ isLoading: true })
+    AsyncStorage.getItem('@Email', (err, result) => {
+      try {
+        fetch('https://calendar-mytime.herokuapp.com/getEventsByDate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            "email": JSON.parse(result).email.toLowerCase(),
+            "selectedDate": this.state.selectedDateOnClick
+          })
+        })
+          .then((response) => response.json())
+          .then((json) => {
+            let code = json.code
+            let message = json.message
+            if (code == 200 && message == "success") {
+              console.log("get events success")
+              this.setState({ isLoading: false })
+              this.setState({ isEventsListEmpty: false })
+              this.setState({ eventsList: json.result.eventsList })
+            } else {
+              console.log("not found data")
+              this.setState({ isLoading: false })
+              this.setState({ isEventsListEmpty: true })
+              this.state.dateObjects[this.state.currentDate] = {
+                selected: true,
+                selectedColor: 'pink'
+              }
+              this.setState({ dateObjects: this.state.dateObjects })
+            }
+          })
+      } catch (error) {
+        console.log("not found data")
+        this.setState({ isLoading: false })
+        this.setState({ isEventsListEmpty: true })
+        this.state.dateObjects[this.state.currentDate] = {
+          selected: true,
+          selectedColor: 'pink'
+        }
+        this.setState({ dateObjects: this.state.dateObjects })
+      }
+    })
   }
 
   renderItem = ({ item }) => {
@@ -118,7 +174,7 @@ class HomeScreenClass extends Component {
             <Text style={{ fontSize: 13, fontWeight: "normal", color: 'grey' }} >{item.detail}</Text>
           </View>
           <View style={styles.item_time}>
-            <Text style={{ fontWeight: 'bold', color: (item.isTitle) ? "red" : "black" }}>{item.time} น.</Text>
+            <Text style={{ fontWeight: 'bold', color: "black" }}>{item.time} น.</Text>
           </View>
         </View>
       </TouchableOpacity>
@@ -127,6 +183,7 @@ class HomeScreenClass extends Component {
   render() {
     return (
       <View style={styles.container}>
+        <Loader isLoading={this.state.isLoading} />
         <View style={styles.firstView}>
           <Calendar
             // Collection of dates that have to be marked. Default = {}
@@ -160,19 +217,23 @@ class HomeScreenClass extends Component {
                 this.setState({ dateObjects: this.state.dateObjects })
                 this.setState({ oldSelectedDate: day.dateString })
               } else {
-                this.state.dateObjects[this.state.oldSelectedDate].selected = false
+                if (this.state.oldSelectedDate != "") {
+                  this.state.dateObjects[this.state.oldSelectedDate].selected = false
+                }
                 this.setState({ oldSelectedDate: "" })
               }
 
               if (this.state.dateObjects[day.dateString].selected) {
-                this.state.selectedDate = moment(day.dateString).format("DD/MM/YYYY")
-                this.setState({ selectedDate: moment(day.dateString).format("DD/MM/YYYY") })
+                this.state.selectedDateShowing = moment(day.dateString).format("DD/MM/YYYY")
+                this.setState({ selectedDateShowing: moment(day.dateString).format("DD/MM/YYYY") })
               } else {
-                this.state.selectedDate = moment().format("DD/MM/YYYY")
-                this.setState({ selectedDate: moment().format("DD/MM/YYYY") })
+                this.state.selectedDateShowing = moment().format("DD/MM/YYYY")
+                this.setState({ selectedDateShowing: moment().format("DD/MM/YYYY") })
               }
 
-              console.log("selectedDate", this.state.selectedDate)
+              console.log("selectedDateShowing", this.state.selectedDate)
+              this.state.selectedDateOnClick = day.dateString
+              this.onclickDates()
             }}
             theme={{
               'stylesheet.day.basic': {
@@ -192,21 +253,23 @@ class HomeScreenClass extends Component {
               borderColor: 'rgba(122, 146, 165, 0.1)', */}
         </View>
         <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-        <View style={{ backgroundColor: '#f6f6f6', flex: 1 }}>
-          <View style={styles.headerItem}>
-            <Text style={styles.titleEvent}>กิจกรรมในวันที่ {this.state.selectedDate}</Text>
-            <TouchableOpacity
-              style={styles.seeAll}
-              onPress={() => this.onclickSeeAll()}>
-              <Text style={{ color: 'grey', fontSize: 12 }}>ดูทั้งหมด</Text>
-            </TouchableOpacity>
-          </View>
-          <FlatList
-            data={this.state.eventsList}
-            renderItem={this.renderItem}
-            keyExtractor={item => item.name}
-            contentContainerStyle={{ paddingBottom: 100 }} />
-        </View>
+        {this.state.isEventsListEmpty ?
+          <View style={{ backgroundColor: '#f6f6f6', flex: 1, paddingTop: 60, alignItems: 'center' }}>
+            <Image source={require("../../assets/images/ic_empty.png")}
+              style={{ width: 120, height: 120 }} />
+            <Text style={{ fontSize: 16, marginLeft: 10, marginRight: 10, marginTop: 40 }}>ไม่มีกิจกรรมใดๆ</Text>
+          </View> :
+
+          <View style={{ backgroundColor: '#f6f6f6', flex: 1 }}>
+            <View style={styles.headerItem}>
+              <Text style={styles.titleEvent}>กิจกรรมในวันที่ {this.state.selectedDateShowing}</Text>
+            </View>
+            <FlatList
+              data={this.state.eventsList}
+              renderItem={this.renderItem}
+              keyExtractor={(item, index) => index.toString()}
+              contentContainerStyle={{ paddingBottom: 100 }} />
+          </View>}
         <ActionButton
           buttonColor="rgba(140, 192, 222, 1)"
           shadowStyle={{ shadowColor: "rgba(140, 192, 222, 1)", }}
@@ -235,11 +298,6 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     fontSize: 16,
     fontWeight: 'bold',
-  },
-  seeAll: {
-    marginLeft: 'auto',
-    marginRight: 10,
-    marginTop: 20,
   },
   item: {
     marginLeft: 10,
