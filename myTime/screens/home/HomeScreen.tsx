@@ -2,11 +2,12 @@
 import { FlatList, StyleSheet, TouchableOpacity } from 'react-native';
 import { Text, View } from '../../components/Themed';
 import { RootTabScreenProps } from '../../types';
-import { Component, useEffect, useState } from 'react';
-import { Calendar, CalendarList, Agenda } from 'react-native-calendars';
+import { Component } from 'react';
+import { Calendar } from 'react-native-calendars';
 import { LocaleConfig } from 'react-native-calendars';
 import ActionButton from 'react-native-action-button';
 import moment from 'moment';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function HomeScreen({ navigation }: RootTabScreenProps<'HomeScreen'>) {
   return (
@@ -25,46 +26,15 @@ class HomeScreenClass extends Component {
     };
     LocaleConfig.defaultLocale = 'fr'
     this.state = {
-      data: [
-        { name: "ประชุมกับเพื่อน", isTitle: true, time: "9:40", detail: "คุยเรื่องโปรเจกต์จบ" },
-        { name: "ประชุมกับพ่อ", isTitle: false, time: "10:40", detail: "คุยเรื่องเงิน" },
-        { name: "ประชุมกับแม่", isTitle: false, time: "11:40", detail: "คุยเรื่องเรียน" },
-        { name: "ประชุมกับอาจารย์", isTitle: false, time: "12:40", detail: "คุยเรื่องโปรเจกต์จบ" },
-        { name: "ประชุมกับอาจารย์ใหญ่", isTitle: false, time: "13:40", detail: "คุยเรื่องโปรเจกต์จบ" },
-        { name: "พูดคุยเล่นๆกับเพื่อนๆ", isTitle: true, time: "14:40", detail: "คุยเล่น" },
-        { name: "นัดไปเที่ยวกับเพื่อน", isTitle: false, time: "15:40", detail: "ไปโรงหนัง" },
-        { name: "นัดไปต่างจังหวัดกับเพื่อน", isTitle: false, time: "16:40", detail: "ไปเชียงใหม่" },
-        { name: "ต้องไปกรุงเทพ", isTitle: false, time: "17:40", detail: "ไปหาของกินเล่น" },
-        { name: "ต้องไปเชียงใหม่", isTitle: false, time: "18:40", detail: "ไปดูหมีแพนด้า" }
-      ],
-      calendarData: [
-        {
-          markedData: '2022-08-05',
-          selected: true,
-          selectedColor: 'pink',
-          dots: [
-            { key: 'vacation', color: 'red', selectedDotColor: 'red' },
-            { key: 'massage', color: 'purple', selectedDotColor: 'purple' },
-            { key: 'workout', color: 'black', selectedDotColor: 'black' }
-          ]
-        },
-        {
-          markedData: '2022-08-06',
-          selected: false,
-          selectedColor: 'orange',
-          dots: [
-            { key: 'vacation', color: 'red', selectedDotColor: 'red' },
-            { key: 'massage', color: 'blue', selectedDotColor: 'blue' },
-            { key: 'workout', color: 'green', selectedDotColor: 'green' }
-          ]
-        }
-      ],
+      eventsList: [],
+      calendarList: [],
       dateObjects: {},
       oldSelectedDate: "",
       currentDate: "",
-      selectedDate: ""
+      selectedDate: "",
+      isLoading: false
     };
-    this.state.calendarData.forEach((calendarItem) => {
+    this.state.calendarList.forEach((calendarItem) => {
       this.state.dateObjects[calendarItem.markedData] = {
         selected: calendarItem.selected,
         selectedColor: calendarItem.selectedColor,
@@ -76,11 +46,53 @@ class HomeScreenClass extends Component {
     let currentDate = moment().format("YYYY/MM/DD")
     this.state.currentDate = currentDate.split('/').join('-')
     this.state.selectedDate = moment().format("DD/MM/YYYY")
+
+    console.log(this.state.eventsList)
+    console.log(this.state.calendarList)
+    console.log(this.state.dateObjects)
   }
 
   componentDidMount() {
     // GET Calendar data
-
+    console.log("get data")
+    this.setState({ isLoading: true })
+    AsyncStorage.getItem('@Email', (err, result) => {
+      try {
+        fetch('https://calendar-mytime.herokuapp.com/events', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            "email": JSON.parse(result).email.toLowerCase(),
+          })
+        })
+          .then((response) => response.json())
+          .then((json) => {
+            let code = json.code
+            let message = json.message
+            console.log(json)
+            if (code == 200 && message == "success") {
+              console.log("get events success")
+              this.setState({ isLoading: false })
+              this.setState({ eventsList: json.result.eventsList })
+              this.setState({ calendarList: json.result.calendarList })
+            } else {
+              this.setState({ isLoading: false })
+              // setShowedPopup(true)
+              // setTitlePopup("ขออภัยในความไม่สะดวก")
+              // setMessagePopup("เกิดข้อผิดพลาดจากทางเซิฟเวอร์ กรุณาลองอีกครั้ง")
+              console.log("server error")
+            }
+          })
+      } catch (error) {
+        this.setState({ isLoading: false })
+        // setShowedPopup(true)
+        // setTitlePopup("ขออภัยในความไม่สะดวก")
+        // setMessagePopup("เกิดข้อผิดพลาดจากทางเซิฟเวอร์ กรุณาลองอีกครั้ง")
+        console.error(error);
+      }
+    })
   }
 
   onclickSeeAll = () => {
@@ -102,7 +114,7 @@ class HomeScreenClass extends Component {
         <View style={styles.item}>
           <View style={styles.item_circle}></View>
           <View style={styles.item_content}>
-            <Text style={{ fontSize: 17, fontWeight: "bold", marginBottom: 4 }} >{item.name}</Text>
+            <Text style={{ fontSize: 17, fontWeight: "bold", marginBottom: 4 }} >{item.title}</Text>
             <Text style={{ fontSize: 13, fontWeight: "normal", color: 'grey' }} >{item.detail}</Text>
           </View>
           <View style={styles.item_time}>
@@ -190,7 +202,7 @@ class HomeScreenClass extends Component {
             </TouchableOpacity>
           </View>
           <FlatList
-            data={this.state.data}
+            data={this.state.eventsList}
             renderItem={this.renderItem}
             keyExtractor={item => item.name}
             contentContainerStyle={{ paddingBottom: 100 }} />

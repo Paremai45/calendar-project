@@ -228,8 +228,11 @@ app.post("/events", (req, res) => {
       const child = ref.child(convertEmail)
       child.get().then((snapshot) => {
         if (snapshot.exists()) {
-          console.log("response from Firebase" + snapshot.val())
-
+          return res.status(200).json({
+            code: 200,
+            message: "success",
+            result: snapshot.val()
+          })
         } else {
           console.log("data not found")
           return res.status(200).json({
@@ -267,21 +270,53 @@ app.post("/addevent", (req, res) => {
       const child = ref.child(convertEmail)
       child.get().then((snapshot) => {
         if (snapshot.exists()) {
-          console.log("response from Firebase" + snapshot.val())
+          let values = snapshot.val()
+          let eventsList = values.eventsList
+          let calendarList = values.calendarList
+          var newEventsList = []
+          var newCalendarList = []
+          if (eventsList != undefined) {
+            eventsList.forEach((val) => {
+              newEventsList.push(val)
+            })
+          }
 
-        } else {
-          console.log("data not found")
+          if (calendarList != undefined) {
+            calendarList.forEach((val) => {
+              newCalendarList.push(val)
+            })
+          }
+
+          newEventsList.push(request.eventsList)
+          newCalendarList.push(request.calendarList)
+          child.set({
+            eventsList: newEventsList,
+            calendarList: newCalendarList
+          })
+          console.log("add event success")
           return res.status(200).json({
             code: 200,
-            message: "not found",
+            message: "success",
+            result: null
+          })
+        } else {
+          console.log("data not found")
+          child.set({
+            eventsList: [request.eventsList],
+            calendarList: [request.calendarList]
+          })
+          console.log("add event success")
+          return res.status(200).json({
+            code: 200,
+            message: "success",
             result: null
           })
         }
-      }, (error) => {
-        console.log("data not found")
+      }, (_) => {
+        console.log("data not found, failed")
         return res.status(200).json({
           code: 200,
-          message: "not found",
+          message: "failed",
           result: null
         })
       })
