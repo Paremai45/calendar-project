@@ -35,6 +35,28 @@ class HomeScreenClass extends Component {
         { name: "นัดไปต่างจังหวัดกับเพื่อน", isTitle: false, time: "16:40", detail: "ไปเชียงใหม่" },
         { name: "ต้องไปกรุงเทพ", isTitle: false, time: "17:40", detail: "ไปหาของกินเล่น" },
         { name: "ต้องไปเชียงใหม่", isTitle: false, time: "18:40", detail: "ไปดูหมีแพนด้า" }
+      ],
+      calendarData: [
+        {
+          markedData: '2022-08-05',
+          selected: true,
+          selectedColor: 'pink',
+          dots: [
+            { key: 'vacation', color: 'red', selectedDotColor: 'red' },
+            { key: 'massage', color: 'purple', selectedDotColor: 'purple' },
+            { key: 'workout', color: 'black', selectedDotColor: 'black' }
+          ]
+        },
+        {
+          markedData: '2022-08-06',
+          selected: false,
+          selectedColor: 'pink',
+          dots: [
+            { key: 'vacation', color: 'red', selectedDotColor: 'red' },
+            { key: 'massage', color: 'blue', selectedDotColor: 'blue' },
+            { key: 'workout', color: 'green', selectedDotColor: 'green' }
+          ]
+        }
       ]
     };
   }
@@ -69,16 +91,40 @@ class HomeScreenClass extends Component {
     );
   };
   render() {
+    let dates = {}
+    this.state.calendarData.forEach((calendarItem) => {
+      dates[calendarItem.markedData] = {
+        selected: calendarItem.selected,
+        selectedColor: calendarItem.selectedColor,
+        dots: calendarItem.dots,
+        customStyles: calendarItem.customStyles
+      }
+    })
+    console.log(dates)
     return (
       <View style={styles.container}>
         <View style={styles.firstView}>
           <Calendar
             // Collection of dates that have to be marked. Default = {}
-            markedDates={{
-              '2022-06-16': { selected: true, marked: true, selectedColor: 'blue' },
-              '2022-06-17': { marked: true },
-              '2022-06-18': { marked: true, dotColor: 'red', activeOpacity: 0 },
-              '2022-06-19': { disabled: true, disableTouchEvent: true }
+            // markedDates={{
+            //   '2022-06-16': { selected: true, marked: true, selectedColor: 'blue' },
+            //   '2022-06-17': { marked: true },
+            //   '2022-06-18': { marked: true, dotColor: 'red', activeOpacity: 0 },
+            //   '2022-06-19': { disabled: true, disableTouchEvent: true }
+            // }}
+            markingType={'multi-dot'}
+            markedDates={dates}
+            onDayPress={day => {
+              console.log('selected day', day)
+            }}
+            theme={{
+              'stylesheet.day.basic': {
+                'selected': {
+                  width: 40,
+                  height: 40,
+                  borderRadius: 20
+                },
+              }
             }}
           />
           {/* textHeaderColor: '#5463FF',
