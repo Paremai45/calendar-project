@@ -8,6 +8,8 @@ import { RootStackScreenProps } from '../../types';
 import moment from 'moment';
 import TextInput from "react-native-text-input-interactive";
 import DateTimePicker from 'react-native-modal-datetime-picker';
+import UserAvatar from 'react-native-user-avatar';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 export default function AddEventScreen({ navigation }: RootStackScreenProps<'AddEvent'>) {
   return (
@@ -38,7 +40,21 @@ class AddEventScreenClass extends Component {
       titleText: "",
       isDatePickerOpen: false,
       dateOnDatePicker: new Date(),
-      timeSelected: ""
+      timeSelected: "",
+      collaborators: ["ริว", "แพรไหม", "กระปุก",
+        "Ryu", "Paremai", "Kapook ka ka",
+        "Ryu", "Paremai", "Kapook",
+        "Ryu", "Paremai", "Kapook",
+        "Ryu", "Paremai", "Kapook",
+        "Ryu", "Paremai", "Kapook",
+        "Ryu", "Paremai", "Kapook"],
+      collaboratorColors: ['red', 'orange', 'green',
+        'blue', 'purple', '#0078AA',
+        'black', '#ccaabb', 'pink',
+        '#00798c', '#003d5b', '#d1495b',
+        '#FFB3B3', '#C1EFFF', '#FFDBA4',
+        '#FFB3B3', '#21E1E1', '#FF1E00',
+        '#59CE8F', '#80558C', '#D1512D']
     }
     // Handle dates
     let currentDate = moment().format("YYYY/MM/DD")
@@ -78,7 +94,16 @@ class AddEventScreenClass extends Component {
     this.hideDatePicker();
   };
 
+  onclickAddEventButton = () => {
+
+  }
+
+  onclickName = (name) => {
+    console.log(name)
+  }
+
   render() {
+    const { avartarConfig } = this.state
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: 'white', marginTop: StatusBar.currentHeight }}>
         <StatusBar
@@ -91,9 +116,10 @@ class AddEventScreenClass extends Component {
           <Image source={require("../../assets/images/ic_close.png")}
             style={{ width: 16, height: 16 }} />
         </TouchableOpacity>
-        <ScrollView
+        <KeyboardAwareScrollView
+          keyboardShouldPersistTaps='always'
           style={{
-            backgroundColor: 'white'
+            backgroundColor: 'white',
           }}
           contentContainerStyle={{
             flexGrow: 1,
@@ -236,9 +262,46 @@ class AddEventScreenClass extends Component {
                   onCancel={this.hideDatePicker}
                 />
               </View>
+              <View style={styles.separator_1} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
+              <Text style={styles.memberText}>เพิ่มผู้มีส่วนร่วมในกิจกรรม</Text>
+              <View style={styles.avatarMembers}>
+                <View style={styles.avatarMembers_1}>
+                  <ScrollView
+                    showsHorizontalScrollIndicator={true}
+                    horizontal={true}
+                    contentContainerStyle={{
+                      flexGrow: 1,
+                      height: 50,
+                    }}>
+                    {this.state.collaborators.map((item, index) => {
+                      return (
+                        <TouchableOpacity
+                          key={index}
+                          onPress={() => this.onclickName(item)}>
+                          <UserAvatar
+                            size={50}
+                            style={{ marginRight: 10 }}
+                            name={item}
+                            bgColor={this.state.collaboratorColors[index]} />
+                        </TouchableOpacity>
+                      )
+                    })}
+                  </ScrollView>
+                </View>
+                <TouchableOpacity
+                  style={{ justifyContent: 'center', left: 10 }}>
+                  <Image source={require("../../assets/images/ic_add_member.png")}
+                    style={{ width: 42, height: 42 }} />
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
-        </ScrollView>
+        </KeyboardAwareScrollView>
+        <TouchableOpacity
+          style={styles.addEventButton}
+          onPress={() => this.onclickAddEventButton()}>
+          <Text style={styles.addEventText}>เพิ่มกิจกรรม</Text>
+        </TouchableOpacity>
       </SafeAreaView>
     );
   }
@@ -268,6 +331,11 @@ const styles = StyleSheet.create({
     height: 1,
     width: '100%',
   },
+  separator_1: {
+    marginTop: 12,
+    height: 1,
+    width: '90%',
+  },
   title: {
     paddingTop: 12,
     backgroundColor: 'transparent',
@@ -285,4 +353,33 @@ const styles = StyleSheet.create({
     color: 'red',
     alignSelf: 'flex-start'
   },
+  addEventButton: {
+    marginTop: 12,
+    borderRadius: 25,
+    marginBottom: Platform.OS === 'ios' ? 0 : 16,
+    backgroundColor: '#8CC0DE',
+    width: '80%',
+    height: 50,
+    alignSelf: 'center',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  addEventText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  avatarMembers: {
+    marginTop: 8,
+    flexDirection: 'row'
+  },
+  avatarMembers_1: {
+    left: -16,
+    width: '70%'
+  },
+  memberText: {
+    alignSelf: 'flex-start',
+    marginTop: 10,
+    marginLeft: 18,
+  }
 });
