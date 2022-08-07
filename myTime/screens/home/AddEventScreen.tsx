@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { StyleSheet, TouchableOpacity, Image, SafeAreaView, ScrollView, Button, StatusBar, Platform } from 'react-native';
+import { StyleSheet, TouchableOpacity, Image, SafeAreaView, ScrollView, StatusBar, Platform, Modal, TouchableWithoutFeedback } from 'react-native';
 import { Text, View } from '../../components/Themed';
 import React, { Component } from 'react';
 import { Calendar, LocaleConfig } from 'react-native-calendars';
@@ -54,7 +54,10 @@ class AddEventScreenClass extends Component {
         '#00798c', '#003d5b', '#d1495b',
         '#FFB3B3', '#C1EFFF', '#FFDBA4',
         '#FFB3B3', '#21E1E1', '#FF1E00',
-        '#59CE8F', '#80558C', '#D1512D']
+        '#59CE8F', '#80558C', '#D1512D'],
+      displayProfilePopup: false,
+      nameProfileSelected: "",
+      colorProfileSelected: ""
     }
     // Handle dates
     let currentDate = moment().format("YYYY/MM/DD")
@@ -98,12 +101,14 @@ class AddEventScreenClass extends Component {
 
   }
 
-  onclickName = (name) => {
-    console.log(name)
+  onclickName = (name, index) => {
+    console.log(name, index)
+    this.setState({ nameProfileSelected: name })
+    this.setState({ colorProfileSelected: this.state.collaboratorColors[index] })
+    this.setState({ displayProfilePopup: true })
   }
 
   render() {
-    const { avartarConfig } = this.state
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: 'white', marginTop: StatusBar.currentHeight }}>
         <StatusBar
@@ -277,7 +282,7 @@ class AddEventScreenClass extends Component {
                       return (
                         <TouchableOpacity
                           key={index}
-                          onPress={() => this.onclickName(item)}>
+                          onPress={() => this.onclickName(item, index)}>
                           <UserAvatar
                             size={50}
                             style={{ marginRight: 10 }}
@@ -297,6 +302,27 @@ class AddEventScreenClass extends Component {
             </View>
           </View>
         </KeyboardAwareScrollView>
+        <Modal
+          transparent={true}
+          animationType='fade'
+          visible={this.state.displayProfilePopup}>
+          <TouchableWithoutFeedback style={{ flex: 1 }} onPress={() => this.setState({ displayProfilePopup: false })}>
+            <View style={styles.modalBackground}>
+              <View style={styles.popup}>
+                <View
+                  style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}
+                >
+                  <UserAvatar
+                    size={50}
+                    name={this.state.nameProfileSelected}
+                    bgColor={this.state.colorProfileSelected} />
+                  <Text style={{ fontSize: 22, paddingLeft: 8 }}> {this.state.nameProfileSelected}</Text>
+                </View>
+              </View>
+            </View>
+          </TouchableWithoutFeedback>
+
+        </Modal>
         <TouchableOpacity
           style={styles.addEventButton}
           onPress={() => this.onclickAddEventButton()}>
@@ -381,5 +407,43 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     marginTop: 10,
     marginLeft: 18,
-  }
+  },
+  modalBackground: {
+    flex: 1,
+    alignItems: 'center',
+    flexDirection: 'column',
+    justifyContent: 'space-around',
+    backgroundColor: '#rgba(0, 0, 0, 0.5)',
+    zIndex: 1000
+  },
+  modalOverlay: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(0,0,0,0.5)'
+  },
+
+  popup: {
+    backgroundColor: '#FFFFFF',
+    height: 80,
+    width: '45%',
+    borderRadius: 10,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  buttonTitle: {
+    color: 'white',
+  },
+  button: {
+    borderRadius: 25,
+    backgroundColor: '#413F42',
+    color: '#FFFFFF',
+    width: 100,
+    height: 50,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 });
