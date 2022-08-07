@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { FlatList, Image, StyleSheet, TouchableOpacity } from 'react-native';
+import { FlatList, Image, RefreshControl, SafeAreaView, ScrollView, StatusBar, StyleSheet, TouchableOpacity } from 'react-native';
 import { Text, View } from '../../components/Themed';
 import { RootTabScreenProps } from '../../types';
 import { Component } from 'react';
@@ -28,28 +28,42 @@ class HomeScreenClass extends Component {
     LocaleConfig.defaultLocale = 'fr'
     this.state = {
       eventsList: [],
-      calendarList: [],
+      calendar: [],
       dateObjects: {},
       oldSelectedDate: "",
       currentDate: "",
       selectedDateOnClick: "",
       selectedDateShowing: "",
       isLoading: false,
-      isEventsListEmpty: false
+      isEventsListEmpty: false,
+      isRefreshing: false
     };
     // Handle dates
     let currentDate = moment().format("YYYY/MM/DD")
     this.state.currentDate = currentDate.split('/').join('-')
     this.state.selectedDate = moment().format("DD/MM/YYYY")
+    this.state.selectedDateShowing = moment().format("DD/MM/YYYY")
   }
 
   componentDidMount() {
+    this.fetchEvents()
+  }
+
+  fetchEvents = () => {
     // GET Calendar data
     console.log("get data")
-    this.setState({ isLoading: true })
+    this.setState({ eventsList: [] })
+    this.setState({ calendar: [] })
+    this.setState({ dateObjects: {} })
+    this.setState({ oldSelectedDate: "" })
+    this.setState({ selectedDateOnClick: "" })
+    this.setState({ isEventsListEmpty: false })
+    if (!this.state.isRefreshing) {
+      this.setState({ isLoading: true })
+    }
     AsyncStorage.getItem('@Email', (err, result) => {
       try {
-        fetch('https://calendar-mytime.herokuapp.com/getEventsByDate', {
+        fetch('https://calendar-mytime.herokuapp.com/getEvents', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -65,26 +79,45 @@ class HomeScreenClass extends Component {
             let message = json.message
             if (code == 200 && message == "success") {
               console.log("get events success")
+              console.log(json)
               this.setState({ isLoading: false })
+              this.setState({ isRefreshing: false })
               this.setState({ isEventsListEmpty: false })
-              if (json.result.eventsList == undefined) {
+              if (json.result.eventsList == undefined || Object.keys(json.result.eventsList).length === 0) {
                 this.setState({ isEventsListEmpty: true })
               }
               this.setState({ eventsList: json.result.eventsList })
-              this.setState({ calendarList: json.result.calendarList })
+              this.setState({ calendar: json.result.calendar })
 
-              this.state.calendarList.forEach((calendarItem) => {
-                this.state.dateObjects[calendarItem.markedData] = {
-                  selected: calendarItem.selected,
-                  selectedColor: calendarItem.selectedColor,
-                  dots: calendarItem.dots
+              var isCurrentDateExisting = false
+              this.state.calendar.forEach((val) => {
+                if (val.markedData == this.state.currentDate) {
+                  isCurrentDateExisting = true
+                  this.state.dateObjects[val.markedData] = {
+                    selected: true,
+                    selectedColor: 'pink',
+                    dots: val.dots,
+                  }
+                } else {
+                  this.state.dateObjects[val.markedData] = {
+                    selected: val.selected,
+                    selectedColor: val.selectedColor,
+                    dots: val.dots,
+                  }
                 }
               })
+              if (!isCurrentDateExisting) {
+                this.state.dateObjects[this.state.currentDate] = {
+                  selected: true,
+                  selectedColor: 'pink'
+                }
+              }
 
               this.setState({ dateObjects: this.state.dateObjects })
             } else {
               console.log("not found data")
               this.setState({ isLoading: false })
+              this.setState({ isRefreshing: false })
               this.setState({ isEventsListEmpty: true })
               this.state.dateObjects[this.state.currentDate] = {
                 selected: true,
@@ -94,7 +127,8 @@ class HomeScreenClass extends Component {
             }
           })
       } catch (error) {
-        console.log("not found data")
+        console.log("not found data. failed")
+        this.setState({ isRefreshing: false })
         this.setState({ isLoading: false })
         this.setState({ isEventsListEmpty: true })
         this.state.dateObjects[this.state.currentDate] = {
@@ -138,144 +172,163 @@ class HomeScreenClass extends Component {
               console.log("get events success")
               this.setState({ isLoading: false })
               this.setState({ isEventsListEmpty: false })
+              this.setState({ calendar: json.result.calendar })
               this.setState({ eventsList: json.result.eventsList })
+              this.state.calendar.forEach((val) => {
+                this.state.dateObjects[val.markedData] = {
+                  selected: val.selected,
+                  selectedColor: val.selectedColor,
+                  dots: val.dots,
+                }
+              })
+              this.setState({ dateObjects: this.state.dateObjects })
+              console.log(this.state.dateObjects)
             } else {
               console.log("not found data")
               this.setState({ isLoading: false })
               this.setState({ isEventsListEmpty: true })
-              this.state.dateObjects[this.state.currentDate] = {
-                selected: true,
-                selectedColor: 'pink'
-              }
-              this.setState({ dateObjects: this.state.dateObjects })
             }
           })
       } catch (error) {
         console.log("not found data")
         this.setState({ isLoading: false })
         this.setState({ isEventsListEmpty: true })
-        this.state.dateObjects[this.state.currentDate] = {
-          selected: true,
-          selectedColor: 'pink'
-        }
-        this.setState({ dateObjects: this.state.dateObjects })
       }
     })
   }
 
-  renderItem = ({ item }) => {
-    return (
-      <TouchableOpacity
-        onPress={() => this.onclickItem(item)}>
-        <View style={styles.item}>
-          <View style={styles.item_circle}></View>
-          <View style={styles.item_content}>
-            <Text style={{ fontSize: 17, fontWeight: "bold", marginBottom: 4 }} >{item.title}</Text>
-            <Text style={{ fontSize: 13, fontWeight: "normal", color: 'grey' }} >{item.detail}</Text>
-          </View>
-          <View style={styles.item_time}>
-            <Text style={{ fontWeight: 'bold', color: "black" }}>{item.time} น.</Text>
-          </View>
-        </View>
-      </TouchableOpacity>
-    );
-  };
+  onRefresh() {
+    this.setState({ isRefreshing: true, }, () => { this.fetchEvents(); });
+  }
+
   render() {
     return (
-      <View style={styles.container}>
-        <Loader isLoading={this.state.isLoading} />
-        <View style={styles.firstView}>
-          <Calendar
-            // Collection of dates that have to be marked. Default = {}
-            // markedDates={{
-            //   '2022-06-16': { selected: true, marked: true, selectedColor: 'blue' },
-            //   '2022-06-17': { marked: true },
-            //   '2022-06-18': { marked: true, dotColor: 'red', activeOpacity: 0 },
-            //   '2022-06-19': { disabled: true, disableTouchEvent: true }
-            // }}
-            hideExtraDays={true}
-            markingType={'multi-dot'}
-            markedDates={this.state.dateObjects}
-            onDayPress={day => {
-              if (this.state.currentDate != day.dateString) {
-                if (this.state.oldSelectedDate != "") {
-                  if (this.state.oldSelectedDate != day.dateString) {
-                    this.state.dateObjects[this.state.oldSelectedDate].selected = false
+      <SafeAreaView style={{ flex: 1, backgroundColor: 'white', marginTop: StatusBar.currentHeight }}>
+        <StatusBar
+          backgroundColor="white"
+          barStyle="dark-content"
+        />
+        <ScrollView
+          refreshControl={
+            <RefreshControl
+              onRefresh={() => this.onRefresh()}
+              refreshing={this.state.isRefreshing}
+            />
+          }
+          style={{
+            backgroundColor: 'white'
+          }}
+          contentContainerStyle={{
+            flexGrow: 1,
+            justifyContent: 'center',
+            flexDirection: 'column',
+          }}>
+          <View style={styles.container}>
+            <Loader isLoading={this.state.isLoading} />
+            <View>
+              <Calendar
+                hideExtraDays={true}
+                markingType={'multi-dot'}
+                markedDates={this.state.dateObjects}
+                onDayPress={day => {
+                  if (this.state.currentDate != day.dateString) {
+                    if (this.state.oldSelectedDate != "") {
+                      if (this.state.oldSelectedDate != day.dateString) {
+                        this.state.dateObjects[this.state.oldSelectedDate].selected = false
+                      }
+                    }
+
+                    if (this.state.dateObjects[day.dateString] == undefined) {
+                      this.state.dateObjects[day.dateString] = {
+                        selected: true,
+                        selectedColor: 'orange',
+                      }
+                    } else if (this.state.dateObjects[day.dateString] != undefined) {
+                      this.state.dateObjects[day.dateString].selected = true
+                    }
+
+                    // Update
+                    this.setState({ dateObjects: this.state.dateObjects })
+                    this.setState({ oldSelectedDate: day.dateString })
+                  } else {
+                    if (this.state.oldSelectedDate != "") {
+                      this.state.dateObjects[this.state.oldSelectedDate].selected = false
+                    }
+                    this.setState({ oldSelectedDate: "" })
                   }
-                }
 
-                if (this.state.dateObjects[day.dateString] == undefined) {
-                  this.state.dateObjects[day.dateString] = {
-                    selected: true,
-                    selectedColor: 'orange',
+                  if (this.state.dateObjects[day.dateString].selected) {
+                    this.state.selectedDateShowing = moment(day.dateString).format("DD/MM/YYYY")
+                    this.setState({ selectedDateShowing: moment(day.dateString).format("DD/MM/YYYY") })
+                  } else {
+                    this.state.selectedDateShowing = moment().format("DD/MM/YYYY")
+                    this.setState({ selectedDateShowing: moment().format("DD/MM/YYYY") })
                   }
-                } else if (this.state.dateObjects[day.dateString] != undefined) {
-                  this.state.dateObjects[day.dateString].selected = !this.state.dateObjects[day.dateString].selected
-                }
 
-                // Update
-                this.setState({ dateObjects: this.state.dateObjects })
-                this.setState({ oldSelectedDate: day.dateString })
-              } else {
-                if (this.state.oldSelectedDate != "") {
-                  this.state.dateObjects[this.state.oldSelectedDate].selected = false
-                }
-                this.setState({ oldSelectedDate: "" })
-              }
-
-              if (this.state.dateObjects[day.dateString].selected) {
-                this.state.selectedDateShowing = moment(day.dateString).format("DD/MM/YYYY")
-                this.setState({ selectedDateShowing: moment(day.dateString).format("DD/MM/YYYY") })
-              } else {
-                this.state.selectedDateShowing = moment().format("DD/MM/YYYY")
-                this.setState({ selectedDateShowing: moment().format("DD/MM/YYYY") })
-              }
-
-              console.log("selectedDateShowing", this.state.selectedDate)
-              this.state.selectedDateOnClick = day.dateString
-              this.onclickDates()
-            }}
-            theme={{
-              'stylesheet.day.basic': {
-                'selected': {
-                  width: 40,
-                  height: 40,
-                  borderRadius: 20
-                },
-              }
-            }}
-          />
-          {/* textHeaderColor: '#5463FF',
-              textDefaultColor: '#9CB4CC',
-              selectedTextColor: '#fff',
-              mainColor: '#5463FF',
-              textSecondaryColor: '#748DA6',
-              borderColor: 'rgba(122, 146, 165, 0.1)', */}
-        </View>
-        <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-        {this.state.isEventsListEmpty ?
-          <View style={{ backgroundColor: '#f6f6f6', flex: 1, paddingTop: 60, alignItems: 'center' }}>
-            <Image source={require("../../assets/images/ic_empty.png")}
-              style={{ width: 120, height: 120 }} />
-            <Text style={{ fontSize: 16, marginLeft: 10, marginRight: 10, marginTop: 40 }}>ไม่มีกิจกรรมใดๆ</Text>
-          </View> :
-
-          <View style={{ backgroundColor: '#f6f6f6', flex: 1 }}>
-            <View style={styles.headerItem}>
-              <Text style={styles.titleEvent}>กิจกรรมในวันที่ {this.state.selectedDateShowing}</Text>
+                  console.log("selectedDateShowing", this.state.selectedDate)
+                  this.state.selectedDateOnClick = day.dateString
+                  this.onclickDates()
+                }}
+                theme={{
+                  'stylesheet.day.basic': {
+                    'selected': {
+                      width: 40,
+                      height: 40,
+                      borderRadius: 20
+                    },
+                  }
+                }}
+              />
             </View>
-            <FlatList
-              data={this.state.eventsList}
-              renderItem={this.renderItem}
-              keyExtractor={(item, index) => index.toString()}
-              contentContainerStyle={{ paddingBottom: 100 }} />
-          </View>}
+            <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
+            {this.state.isEventsListEmpty ?
+              <View style={{ backgroundColor: '#f6f6f6', flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                <Image source={this.state.isRefreshing || this.state.isLoading ? require("../../assets/images/ic_loading.png") : require("../../assets/images/ic_empty.png")}
+                  style={{ width: 120, height: 120 }} />
+                {this.state.isRefreshing || this.state.isLoading ?
+                  <Text style={{ fontSize: 16, marginLeft: 10, marginRight: 10, marginTop: 10 }}>กำลังโหลดข้อมูล</Text> :
+                  <Text style={{ fontSize: 16, marginLeft: 10, marginRight: 10, marginTop: 10 }}>ไม่มีกิจกรรมใดๆ</Text>}
+
+              </View> :
+              <View style={{ backgroundColor: '#f6f6f6', flex: 1 }}>
+                {this.state.isRefreshing || this.state.isLoading ?
+                  <View style={{ backgroundColor: '#f6f6f6', flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                    <Image source={require("../../assets/images/ic_loading.png")}
+                      style={{ width: 120, height: 120 }} />
+                    <Text style={{ fontSize: 16, marginLeft: 10, marginRight: 10, marginTop: 10 }}>กำลังโหลดข้อมูล</Text>
+                  </View> :
+                  <View style={{ paddingBottom: 100, backgroundColor: '#f6f6f6' }}>
+                    <View style={styles.headerItem}>
+                      <Text style={styles.titleEvent}>กิจกรรมในวันที่ {this.state.selectedDateShowing}</Text>
+                    </View>
+                    {this.state.eventsList.map((item, index) => {
+                      return (
+                        <TouchableOpacity
+                          key={index}
+                          onPress={() => this.onclickItem(item)}>
+                          <View style={styles.item}>
+                            <View style={styles.item_circle}></View>
+                            <View style={styles.item_content}>
+                              <Text style={{ fontSize: 17, fontWeight: "bold", marginBottom: 4 }} >{item.title}</Text>
+                              <Text style={{ fontSize: 13, fontWeight: "normal", color: 'grey' }} >{item.detail}</Text>
+                            </View>
+                            <View style={styles.item_time}>
+                              <Text style={{ fontWeight: 'bold', color: "black" }}>{item.time} น.</Text>
+                            </View>
+                          </View>
+                        </TouchableOpacity>
+                      )
+                    })}
+                  </View>}
+              </View>}
+          </View>
+        </ScrollView>
         <ActionButton
           buttonColor="rgba(140, 192, 222, 1)"
           shadowStyle={{ shadowColor: "rgba(140, 192, 222, 1)", }}
           onPress={() => { this.onclickAddEventButton() }}
         />
-      </View>
+      </SafeAreaView>
     );
   }
 }
@@ -283,9 +336,6 @@ class HomeScreenClass extends Component {
 const styles = StyleSheet.create({
   container: {
     flex: 1
-  },
-  firstView: {
-    paddingTop: 44,
   },
   headerItem: {
     flexDirection: 'row',
