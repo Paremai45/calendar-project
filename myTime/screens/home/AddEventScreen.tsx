@@ -86,7 +86,6 @@ class AddEventScreenClass extends Component {
   }
 
   onclickCloseButton = () => {
-    this.props.route.params.callback()
     this.props.navigation.pop()
   }
 
@@ -187,6 +186,7 @@ class AddEventScreenClass extends Component {
                 this.setState({ isDetailEmpty: false })
                 this.setState({ isTimeEmpty: false })
                 if (json.code == 200, json.message == "success") {
+                  this.props.route.params.callback()
                   this.onclickCloseButton()
                 }
               } else {
@@ -400,6 +400,7 @@ class AddEventScreenClass extends Component {
                       contentContainerStyle={{
                         flexGrow: 1,
                         height: 50,
+                        paddingRight: 12,
                       }}>
                       {this.state.collaborators.map((item, index) => {
                         return (
@@ -408,7 +409,7 @@ class AddEventScreenClass extends Component {
                             onPress={() => this.onclickName(item, index)}>
                             <UserAvatar
                               size={50}
-                              style={{ marginRight: 10 }}
+                              style={{ marginLeft: -12, left: 12 }}
                               name={item}
                               bgColor={this.state.collaboratorColors[index]} />
                           </TouchableOpacity>

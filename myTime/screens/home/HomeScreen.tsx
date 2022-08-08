@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { FlatList, Image, RefreshControl, SafeAreaView, ScrollView, StatusBar, StyleSheet, TouchableOpacity } from 'react-native';
+import { FlatList, Image, Modal, RefreshControl, SafeAreaView, ScrollView, StatusBar, StyleSheet, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
 import { Text, View } from '../../components/Themed';
 import { RootTabScreenProps } from '../../types';
 import { Component } from 'react';
@@ -9,6 +9,7 @@ import ActionButton from 'react-native-action-button';
 import moment from 'moment';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Loader from '../../components/Loader';
+import UserAvatar from 'react-native-user-avatar';
 
 export default function HomeScreen({ navigation }: RootTabScreenProps<'HomeScreen'>) {
   return (
@@ -36,7 +37,30 @@ class HomeScreenClass extends Component {
       selectedDateShowing: "",
       isLoading: false,
       isEventsListEmpty: false,
-      isRefreshing: false
+      isRefreshing: false,
+      detailModal: false,
+      collaborators: ["RYU"],
+      collaboratorColors: ['red', 'orange', 'green',
+        'blue', 'purple', '#0078AA',
+        'black', '#ccaabb', 'pink',
+        '#00798c', '#003d5b', '#d1495b',
+        '#FFB3B3', '#C1EFFF', '#FFDBA4',
+        '#FFB3B3', '#21E1E1', '#FF1E00',
+        '#59CE8F', '#80558C', '#D1512D',
+        'red', 'orange', 'green',
+        'blue', 'purple', '#0078AA',
+        'black', '#ccaabb', 'pink',
+        '#00798c', '#003d5b', '#d1495b',
+        '#FFB3B3', '#C1EFFF', '#FFDBA4',
+        '#FFB3B3', '#21E1E1', '#FF1E00',
+        '#59CE8F', '#80558C', '#D1512D',
+        'red', 'orange', 'green',
+        'blue', 'purple', '#0078AA',
+        'black', '#ccaabb', 'pink',
+        '#00798c', '#003d5b', '#d1495b',
+        '#FFB3B3', '#C1EFFF', '#FFDBA4',
+        '#FFB3B3', '#21E1E1', '#FF1E00',
+        '#59CE8F', '#80558C', '#D1512D'],
     };
     // Handle dates
     let currentDate = moment().format("YYYY/MM/DD")
@@ -142,6 +166,7 @@ class HomeScreenClass extends Component {
 
   onclickItem = (item) => {
     console.log(item)
+    this.setState({ detailModal: true })
   }
 
   onclickAddEventButton = () => {
@@ -332,6 +357,64 @@ class HomeScreenClass extends Component {
           shadowStyle={{ shadowColor: "rgba(140, 192, 222, 1)", }}
           onPress={() => { this.onclickAddEventButton() }}
         />
+        <Modal
+          transparent={true}
+          animationType='slide'
+          visible={true}>
+          <TouchableWithoutFeedback
+            onPress={() => {
+              this.setState({ detailModal: false })
+            }}>
+            <View style={styles.modalOverlay} />
+          </TouchableWithoutFeedback>
+          <View style={styles.modalBackground}>
+            <View style={styles.popup}>
+              <TouchableOpacity
+                style={styles.closeTextButton}
+                onPress={() => {
+                  this.setState({ detailModal: false })
+                }}>
+                <Image source={require("../../assets/images/ic_close.png")}
+                  style={{ width: 16, height: 16 }} />
+              </TouchableOpacity>
+              <View style={styles.popupDetail}>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <View style={styles.popupItemCircle}></View>
+                  <Text style={{ fontSize: 24, fontWeight: '500', paddingLeft: 16, paddingRight: 16 }}>ไปเที่ยววววววว</Text>
+                </View>
+                <View style={styles.avatarMembers_1}>
+                  <Text style={styles.memberText}>ผู้มีส่วนร่วมในกิจกรรมนี้</Text>
+                  {this.state.collaborators.length != 0 ?
+                    <ScrollView
+                      style={{ top: 4, left: 12 }}
+                      showsHorizontalScrollIndicator={true}
+                      horizontal={true}
+                      contentContainerStyle={{
+                        flexGrow: 1,
+                        height: 50,
+                        paddingRight: 12,
+                      }}>
+                      {this.state.collaborators.map((item, index) => {
+                        return (
+                          <TouchableOpacity
+                            key={index}
+                            onPress={() => this.onclickName(item, index)}>
+                            <UserAvatar
+                              size={50}
+                              style={{ marginLeft: -12, left: 12 }}
+                              name={item}
+                              bgColor={this.state.collaboratorColors[index]} />
+                          </TouchableOpacity>
+                        )
+                      })}
+                    </ScrollView> :
+                    <Text style={{ color: 'red', marginLeft: 16, marginTop: 12 }}>ไม่มีผู้ร่วมกิจกรรมนี้</Text>}
+                </View>
+                <View style={styles.separator_1} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
+              </View>
+            </View>
+          </View>
+        </Modal>
       </SafeAreaView>
     );
   }
@@ -380,5 +463,81 @@ const styles = StyleSheet.create({
   separator: {
     height: 1,
     width: '100%',
+  },
+  modalBackground: {
+    marginTop: '60%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: 'center',
+    alignContent: 'center',
+    backgroundColor: 'transparent',
+    zIndex: 1,
+  },
+  modalOverlay: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'transparent',
+  },
+  popup: {
+    backgroundColor: '#FFFFFF',
+    width: 1000,
+    maxWidth: '100%',
+    height: '100%',
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    display: 'flex',
+    alignItems: 'center',
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 2 }, // change this for more shadow
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: Platform.OS === 'ios' ? 0 : 20
+  },
+  closeTextButton: {
+    backgroundColor: 'transparent',
+    paddingLeft: 20,
+    paddingTop: 20,
+    justifyContent: 'flex-start',
+    alignSelf: 'flex-start',
+    alignItems: 'flex-start',
+  },
+  popupDetail: {
+    alignSelf: 'flex-start',
+    paddingTop: 24,
+    paddingLeft: 30,
+  },
+  popupItemCircle: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: 'pink',
+  },
+  avatarMembers: {
+    marginTop: 8,
+    flexDirection: 'row'
+  },
+  avatarMembers_1: {
+    left: -16,
+    width: '70%'
+  },
+  separator_1: {
+    top: 24,
+    height: 1,
+    width: 350,
+  },
+  addEventText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  memberText: {
+    alignSelf: 'flex-start',
+    marginTop: 10,
+    marginLeft: '6%',
+    fontWeight: '500',
+    color: 'grey',
   },
 });

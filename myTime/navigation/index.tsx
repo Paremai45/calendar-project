@@ -14,9 +14,7 @@ import { useState, useEffect } from 'react';
 
 import Colors from '../constants/Colors';
 import useColorScheme from '../hooks/useColorScheme';
-import ModalScreen from '../screens/ModalScreen';
-import NotFoundScreen from '../screens/NotFoundScreen';
-import TabTwoScreen from '../screens/TabTwoScreen';
+
 import { RootStackParamList, RootTabParamList, RootTabScreenProps } from '../types';
 import LinkingConfiguration from './LinkingConfiguration';
 import { Text } from '../components/Themed';
@@ -27,6 +25,9 @@ import RegisterScreen from '../screens/registration/RegisterScreen';
 import ForgotPasswordScreen from '../screens/registration/ForgotPassword';
 import HomeScreen from '../screens/home/HomeScreen';
 import AddEventScreen from '../screens/home/AddEventScreen';
+import ModalScreen from '../screens/ModalScreen';
+import NotFoundScreen from '../screens/NotFoundScreen';
+import TabTwoScreen from '../screens/TabTwoScreen';
 
 export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeName }) {
   const [isLogin, setLogin] = useState(false)
@@ -83,7 +84,7 @@ function LoginRootNavigator() {
       <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Register" component={RegisterScreen} options={{ headerShown: true, title: "", headerShadowVisible: true, headerBackTitleVisible: false, headerTintColor: 'black' }} />
       <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} options={{ headerShown: true, title: "", headerShadowVisible: true, headerBackTitleVisible: false, headerTintColor: 'black' }} />
-      <Stack.Screen name="Home" component={BottomTabNavigator} options={{ headerShown: false, gestureEnabled: false }} />
+      <Stack.Screen name="Home" component={BottomTabNavigator} options={{ headerShown: false, gestureEnabled: true }} />
       <Stack.Screen name="NotFound" component={NotFoundScreen} options={{ title: 'Oops!', }} />
       <Stack.Group screenOptions={{ presentation: 'modal' }}>
         <Stack.Screen name="Modal" component={ModalScreen} />
