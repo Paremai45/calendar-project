@@ -386,7 +386,7 @@ class HomeScreenClass extends Component {
                   <Text style={styles.memberText}>ผู้มีส่วนร่วมในกิจกรรมนี้</Text>
                   {this.state.collaborators.length != 0 ?
                     <ScrollView
-                      style={{ top: 4, left: 12 }}
+                      style={{ top: 8, left: 12 }}
                       showsHorizontalScrollIndicator={true}
                       horizontal={true}
                       contentContainerStyle={{
@@ -537,7 +537,6 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     marginTop: 10,
     marginLeft: '6%',
-    fontWeight: '500',
     color: 'grey',
   },
 });
