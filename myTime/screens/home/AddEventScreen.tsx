@@ -40,8 +40,12 @@ class AddEventScreenClass extends Component {
       isTitleEmpty: false,
       isDetailEmpty: false,
       isTimeEmpty: false,
+      isPlaceTextEmpty: false,
+      isRemindTextEmpty: false,
       titleText: "",
       detailText: "",
+      placeText: "",
+      remindText: "",
       isDatePickerOpen: false,
       dateOnDatePicker: new Date(),
       timeSelected: "",
@@ -143,7 +147,14 @@ class AddEventScreenClass extends Component {
       this.setState({ isTimeEmpty: true })
     }
 
-    if (this.state.titleText.length != 0 && this.state.detailText.length != 0 && this.state.timeSelected.length != 0) {
+    if (this.state.placeText == 0) {
+      this.setState({ isPlaceTextEmpty: true })
+    }
+
+    if (this.state.titleText.length != 0 &&
+      this.state.detailText.length != 0 &&
+      this.state.timeSelected.length != 0 &&
+      this.state.placeText.length != 0) {
       this.setState({ isLoading: true })
       AsyncStorage.getItem('@Email', (err, result) => {
         try {
@@ -159,7 +170,9 @@ class AddEventScreenClass extends Component {
                 "title": this.state.titleText,
                 "detail": this.state.detailText,
                 "participants": this.state.collaborators,
-                "time": this.state.timeSelected
+                "time": this.state.timeSelected,
+                "place": this.state.placeText,
+                "remind": this.state.remindText
               },
               "calendar": {
                 "markedData": this.state.selectedDateOnClick,
@@ -366,9 +379,9 @@ class AddEventScreenClass extends Component {
                   value={this.state.timeSelected}
                   editable={false}
                   originalColor={this.state.isTimeEmpty ? 'red' : ''}
-                  placeholder='เวลา'
+                  placeholder='กดปุ่มเลือกเวลาด้านขวา'
                   animatedPlaceholderTextColor='#B2B1B9'
-                  textInputStyle={{ backgroundColor: '#f6f6f6', width: '85%' }}
+                  textInputStyle={{ backgroundColor: '#f9f9f9', width: '85%' }}
                 />
                 <TouchableOpacity
                   style={{ justifyContent: 'center', right: 30 }}
@@ -389,6 +402,30 @@ class AddEventScreenClass extends Component {
                 />
               </View>
               {this.state.isTimeEmpty && <Text style={styles.errorText}>จำเป็นต้องเลือกเวลา</Text>}
+              <View style={styles.title}>
+                <TextInput
+                  originalColor={this.state.isPlaceTextEmpty ? 'red' : ''}
+                  placeholder='สถานที่'
+                  animatedPlaceholderTextColor='#B2B1B9'
+                  onChangeText={(text: string) => { this.setState({ placeText: text }) }}
+                  returnKeyType='done'
+                  onBlur={() => this.validateDetail()}
+                  autoCorrect={false}
+                  spellCheck={false}
+                  textInputStyle={{ backgroundColor: '#f7f9fc' }}
+                  onSubmitEditing={() => { this.validateDetail() }} />
+              </View>
+              {this.state.isPlaceTextEmpty && <Text style={styles.errorText}>{this.state.emptyText}</Text>}
+              <View style={styles.title}>
+                <TextInput
+                  placeholder='เตือนความจำ'
+                  animatedPlaceholderTextColor='#B2B1B9'
+                  onChangeText={(text: string) => { this.setState({ remindText: text }) }}
+                  returnKeyType='done'
+                  autoCorrect={false}
+                  spellCheck={false}
+                  textInputStyle={{ backgroundColor: '#f7f9fc' }} />
+              </View>
               <View style={styles.separator_1} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
               <Text style={styles.memberText}>เพิ่มผู้มีส่วนร่วมในกิจกรรม</Text>
               <View style={styles.avatarMembers}>

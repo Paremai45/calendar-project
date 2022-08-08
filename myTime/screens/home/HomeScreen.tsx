@@ -39,7 +39,7 @@ class HomeScreenClass extends Component {
       isEventsListEmpty: false,
       isRefreshing: false,
       detailModal: false,
-      collaborators: ["RYU"],
+      collaborators: [],
       collaboratorColors: ['red', 'orange', 'green',
         'blue', 'purple', '#0078AA',
         'black', '#ccaabb', 'pink',
@@ -382,11 +382,11 @@ class HomeScreenClass extends Component {
                   <View style={styles.popupItemCircle}></View>
                   <Text style={{ fontSize: 24, fontWeight: '500', paddingLeft: 16, paddingRight: 16 }}>ไปเที่ยววววววว</Text>
                 </View>
+                <Text style={styles.memberText}>ผู้มีส่วนร่วมในกิจกรรมนี้</Text>
                 <View style={styles.avatarMembers_1}>
-                  <Text style={styles.memberText}>ผู้มีส่วนร่วมในกิจกรรมนี้</Text>
                   {this.state.collaborators.length != 0 ?
                     <ScrollView
-                      style={{ top: 8, left: 12 }}
+                      style={{ paddingTop: 8, left: 12 }}
                       showsHorizontalScrollIndicator={true}
                       horizontal={true}
                       contentContainerStyle={{
@@ -408,14 +408,51 @@ class HomeScreenClass extends Component {
                         )
                       })}
                     </ScrollView> :
-                    <Text style={{ color: 'red', marginLeft: 16, marginTop: 12 }}>ไม่มีผู้ร่วมกิจกรรมนี้</Text>}
+                    <Text style={{
+                      color: 'orange', marginTop: 12
+                    }}>ไม่มีผู้ร่วมกิจกรรมนี้</Text>}
                 </View>
                 <View style={styles.separator_1} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
+                <View style={{ flexDirection: 'row', alignItems: 'center', paddingTop: 32 }}>
+                  <View>
+                    <Image source={require("../../assets/images/ic_clock.png")}
+                      style={{ width: 24, height: 24 }} />
+                  </View>
+                  <Text style={{ fontSize: 18, paddingLeft: 24, marginRight: 40 }}>ไปเที่ยววววววว</Text>
+                </View>
+                <View style={{ flexDirection: 'row', alignItems: 'center', paddingTop: 24 }}>
+                  <View>
+                    <Image source={require("../../assets/images/ic_calendar.png")}
+                      style={{ width: 24, height: 24 }} />
+                  </View>
+                  <Text style={{ fontSize: 18, paddingLeft: 24, marginRight: 40 }}>วันจันทร์ที่ 8 สิงหาคม 2022</Text>
+                </View>
+                <View style={{ flexDirection: 'row', alignItems: 'center', paddingTop: 24 }}>
+                  <View>
+                    <Image source={require("../../assets/images/ic_map.png")}
+                      style={{ width: 24, height: 24 }} />
+                  </View>
+                  <Text style={{ fontSize: 18, paddingLeft: 24, marginRight: 40 }}>สุขอนันต์ ปาร์ค</Text>
+                </View>
+                <View style={{ flexDirection: 'row', alignItems: 'center', paddingTop: 24 }}>
+                  <View>
+                    <Image source={require("../../assets/images/ic_detail.png")}
+                      style={{ width: 24, height: 24 }} />
+                  </View>
+                  <Text style={{ fontSize: 18, paddingLeft: 24, marginRight: 40 }}>ไปดูหนังกับเพื่อนๆที่สุขอนันต์ ปาร์ค</Text>
+                </View>
+                <View style={{ flexDirection: 'row', alignItems: 'center', paddingTop: 24 }}>
+                  <View>
+                    <Image source={require("../../assets/images/ic_remark.png")}
+                      style={{ width: 24, height: 24 }} />
+                  </View>
+                  <Text style={{ fontSize: 18, paddingLeft: 24, marginRight: 40, color: 'red' }}>อย่าลืมเอาร่มไปนะ !! เพราะวันนั้นอาจจะฝนตก</Text>
+                </View>
               </View>
             </View>
           </View>
         </Modal>
-      </SafeAreaView>
+      </SafeAreaView >
     );
   }
 }
@@ -465,7 +502,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   modalBackground: {
-    marginTop: '60%',
+    marginTop: '75%',
     alignItems: 'center',
     justifyContent: 'center',
     alignSelf: 'center',
@@ -521,12 +558,15 @@ const styles = StyleSheet.create({
   },
   avatarMembers_1: {
     left: -16,
-    width: '70%'
+    width: '90%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    alignSelf: 'center',
   },
   separator_1: {
-    top: 24,
+    marginTop: 24,
     height: 1,
-    width: 350,
+    width: 320,
   },
   addEventText: {
     color: 'white',
@@ -536,7 +576,6 @@ const styles = StyleSheet.create({
   memberText: {
     alignSelf: 'flex-start',
     marginTop: 10,
-    marginLeft: '6%',
     color: 'grey',
   },
 });
