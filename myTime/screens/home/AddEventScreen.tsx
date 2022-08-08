@@ -392,11 +392,9 @@ class AddEventScreenClass extends Component {
                 <DateTimePicker
                   isVisible={this.state.isDatePickerOpen}
                   mode='time'
-                  date={new Date()}
                   locale="th-TH"
                   confirmTextIOS='ยืนยัน'
                   cancelTextIOS='ยกเลิก'
-                  minimumDate={new Date()}
                   onConfirm={this.handleConfirm}
                   onCancel={this.hideDatePicker}
                 />

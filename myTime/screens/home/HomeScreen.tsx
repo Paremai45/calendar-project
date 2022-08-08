@@ -7,6 +7,7 @@ import { Calendar, DateData } from 'react-native-calendars';
 import { LocaleConfig } from 'react-native-calendars';
 import ActionButton from 'react-native-action-button';
 import moment from 'moment';
+import localization from 'moment/locale/th';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Loader from '../../components/Loader';
 import UserAvatar from 'react-native-user-avatar';
@@ -61,6 +62,7 @@ class HomeScreenClass extends Component {
         '#FFB3B3', '#C1EFFF', '#FFDBA4',
         '#FFB3B3', '#21E1E1', '#FF1E00',
         '#59CE8F', '#80558C', '#D1512D'],
+      itemData: {}
     };
     // Handle dates
     let currentDate = moment().format("YYYY/MM/DD")
@@ -103,7 +105,6 @@ class HomeScreenClass extends Component {
             let message = json.message
             if (code == 200 && message == "success") {
               console.log("get events success")
-              console.log(json)
               this.setState({ isLoading: false })
               this.setState({ isRefreshing: false })
               this.setState({ isEventsListEmpty: false })
@@ -166,6 +167,7 @@ class HomeScreenClass extends Component {
 
   onclickItem = (item) => {
     console.log(item)
+    this.setState({ itemData: item })
     this.setState({ detailModal: true })
   }
 
@@ -211,7 +213,6 @@ class HomeScreenClass extends Component {
                 }
               })
               this.setState({ dateObjects: this.state.dateObjects })
-              console.log(this.state.dateObjects)
             } else {
               console.log("not found data")
               this.setState({ isLoading: false })
@@ -357,7 +358,7 @@ class HomeScreenClass extends Component {
           shadowStyle={{ shadowColor: "rgba(140, 192, 222, 1)", }}
           onPress={() => { this.onclickAddEventButton() }}
         />
-        <Modal
+        {this.state.itemData.title != undefined && <Modal
           transparent={true}
           animationType='slide'
           visible={this.state.detailModal}>
@@ -380,13 +381,13 @@ class HomeScreenClass extends Component {
               <View style={styles.popupDetail}>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                   <View style={styles.popupItemCircle}></View>
-                  <Text style={{ fontSize: 24, fontWeight: '500', paddingLeft: 16, paddingRight: 16 }}>ไปเที่ยววววววว</Text>
+                  <Text style={{ fontSize: 24, fontWeight: '500', paddingLeft: 16, paddingRight: 16 }}>{this.state.itemData.title}</Text>
                 </View>
                 <Text style={styles.memberText}>ผู้มีส่วนร่วมในกิจกรรมนี้</Text>
                 <View style={styles.avatarMembers_1}>
-                  {this.state.collaborators.length != 0 ?
+                  {this.state.itemData.participants != undefined ?
                     <ScrollView
-                      style={{ paddingTop: 8, left: 12 }}
+                      style={{ paddingTop: 8 }}
                       showsHorizontalScrollIndicator={true}
                       horizontal={true}
                       contentContainerStyle={{
@@ -394,7 +395,7 @@ class HomeScreenClass extends Component {
                         height: 50,
                         paddingRight: 12,
                       }}>
-                      {this.state.collaborators.map((item, index) => {
+                      {this.state.itemData.participants.map((item, index) => {
                         return (
                           <TouchableOpacity
                             key={index}
@@ -415,43 +416,55 @@ class HomeScreenClass extends Component {
                 <View style={styles.separator_1} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
                 <View style={{ flexDirection: 'row', alignItems: 'center', paddingTop: 32 }}>
                   <View>
-                    <Image source={require("../../assets/images/ic_clock.png")}
-                      style={{ width: 24, height: 24 }} />
-                  </View>
-                  <Text style={{ fontSize: 18, paddingLeft: 24, marginRight: 40 }}>ไปเที่ยววววววว</Text>
-                </View>
-                <View style={{ flexDirection: 'row', alignItems: 'center', paddingTop: 24 }}>
-                  <View>
                     <Image source={require("../../assets/images/ic_calendar.png")}
                       style={{ width: 24, height: 24 }} />
                   </View>
-                  <Text style={{ fontSize: 18, paddingLeft: 24, marginRight: 40 }}>วันจันทร์ที่ 8 สิงหาคม 2022</Text>
+                  <Text style={{ fontSize: 18, paddingLeft: 24, marginRight: 40 }}>
+                    วัน
+                    {moment(new Date(this.state.selectedDateOnClick), 'YYYY-MM-DD').locale('th', localization).format("dddd")}
+                    {' '}ที่ {new Date(this.state.selectedDateOnClick).getDate()}
+                    {' '}{moment(new Date(this.state.selectedDateOnClick), 'YYYY-MM-DD').locale('th', localization).format("MMMM")}
+                  </Text>
                 </View>
                 <View style={{ flexDirection: 'row', alignItems: 'center', paddingTop: 24 }}>
                   <View>
-                    <Image source={require("../../assets/images/ic_map.png")}
+                    <Image source={require("../../assets/images/ic_clock.png")}
                       style={{ width: 24, height: 24 }} />
                   </View>
-                  <Text style={{ fontSize: 18, paddingLeft: 24, marginRight: 40 }}>สุขอนันต์ ปาร์ค</Text>
+                  <Text style={{ fontSize: 18, paddingLeft: 24, marginRight: 40 }}>{this.state.itemData.time} น.</Text>
+                </View>
+                <View style={{ flexDirection: 'row', alignItems: 'center', paddingTop: 24 }}>
+                  <View>
+                    <Image source={require("../../assets/images/ic_title.png")}
+                      style={{ width: 24, height: 24 }} />
+                  </View>
+                  <Text style={{ fontSize: 18, paddingLeft: 24, marginRight: 40 }}>{this.state.itemData.title}</Text>
                 </View>
                 <View style={{ flexDirection: 'row', alignItems: 'center', paddingTop: 24 }}>
                   <View>
                     <Image source={require("../../assets/images/ic_detail.png")}
                       style={{ width: 24, height: 24 }} />
                   </View>
-                  <Text style={{ fontSize: 18, paddingLeft: 24, marginRight: 40 }}>ไปดูหนังกับเพื่อนๆที่สุขอนันต์ ปาร์ค</Text>
+                  <Text style={{ fontSize: 18, paddingLeft: 24, marginRight: 40 }}>{this.state.itemData.detail}</Text>
                 </View>
                 <View style={{ flexDirection: 'row', alignItems: 'center', paddingTop: 24 }}>
+                  <View>
+                    <Image source={require("../../assets/images/ic_map.png")}
+                      style={{ width: 24, height: 24 }} />
+                  </View>
+                  <Text style={{ fontSize: 18, paddingLeft: 24, marginRight: 40 }}>{this.state.itemData.place}</Text>
+                </View>
+                {this.state.itemData.remind != "" && <View style={{ flexDirection: 'row', alignItems: 'center', paddingTop: 24 }}>
                   <View>
                     <Image source={require("../../assets/images/ic_remark.png")}
                       style={{ width: 24, height: 24 }} />
                   </View>
-                  <Text style={{ fontSize: 18, paddingLeft: 24, marginRight: 40, color: 'red' }}>อย่าลืมเอาร่มไปนะ !! เพราะวันนั้นอาจจะฝนตก</Text>
-                </View>
+                  <Text style={{ fontSize: 18, paddingLeft: 24, marginRight: 40, color: 'red' }}>{this.state.itemData.remind}</Text>
+                </View>}
               </View>
             </View>
           </View>
-        </Modal>
+        </Modal>}
       </SafeAreaView >
     );
   }
@@ -502,7 +515,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   modalBackground: {
-    marginTop: '75%',
+    marginTop: '65%',
     alignItems: 'center',
     justifyContent: 'center',
     alignSelf: 'center',
@@ -528,7 +541,7 @@ const styles = StyleSheet.create({
     display: 'flex',
     alignItems: 'center',
     shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 2 }, // change this for more shadow
+    shadowOffset: { width: 0, height: -2 }, // change this for more shadow
     shadowOpacity: 0.1,
     shadowRadius: 6,
     elevation: Platform.OS === 'ios' ? 0 : 20
