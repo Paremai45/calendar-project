@@ -10,15 +10,16 @@ import TextInput from "react-native-text-input-interactive";
 import DateTimePicker from 'react-native-modal-datetime-picker';
 import UserAvatar from 'react-native-user-avatar';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export default function AddEventScreen({ navigation }: RootStackScreenProps<'AddEvent'>) {
+export default function AddEventScreen({ navigation, route }: RootStackScreenProps<'AddEvent'>) {
   return (
-    <AddEventScreenClass navigation={navigation} />
+    <AddEventScreenClass navigation={navigation} route={route} />
   )
 }
 
 class AddEventScreenClass extends Component {
-  constructor(props: any) {
+  constructor(props) {
     super(props);
     LocaleConfig.locales.en = LocaleConfig.locales['']
     LocaleConfig.locales.fr = {
@@ -37,18 +38,29 @@ class AddEventScreenClass extends Component {
       isLoading: false,
       emptyText: "จำเป็นต้องกรอกช้อมูล",
       isTitleEmpty: false,
+      isDetailEmpty: false,
+      isTimeEmpty: false,
       titleText: "",
+      detailText: "",
       isDatePickerOpen: false,
       dateOnDatePicker: new Date(),
       timeSelected: "",
-      collaborators: ["ริว", "แพรไหม", "กระปุก",
-        "Ryu", "Paremai", "Kapook ka ka",
-        "Ryu", "Paremai", "Kapook",
-        "Ryu", "Paremai", "Kapook",
-        "Ryu", "Paremai", "Kapook",
-        "Ryu", "Paremai", "Kapook",
-        "Ryu", "Paremai", "Kapook"],
+      collaborators: [],
       collaboratorColors: ['red', 'orange', 'green',
+        'blue', 'purple', '#0078AA',
+        'black', '#ccaabb', 'pink',
+        '#00798c', '#003d5b', '#d1495b',
+        '#FFB3B3', '#C1EFFF', '#FFDBA4',
+        '#FFB3B3', '#21E1E1', '#FF1E00',
+        '#59CE8F', '#80558C', '#D1512D',
+        'red', 'orange', 'green',
+        'blue', 'purple', '#0078AA',
+        'black', '#ccaabb', 'pink',
+        '#00798c', '#003d5b', '#d1495b',
+        '#FFB3B3', '#C1EFFF', '#FFDBA4',
+        '#FFB3B3', '#21E1E1', '#FF1E00',
+        '#59CE8F', '#80558C', '#D1512D',
+        'red', 'orange', 'green',
         'blue', 'purple', '#0078AA',
         'black', '#ccaabb', 'pink',
         '#00798c', '#003d5b', '#d1495b',
@@ -56,6 +68,9 @@ class AddEventScreenClass extends Component {
         '#FFB3B3', '#21E1E1', '#FF1E00',
         '#59CE8F', '#80558C', '#D1512D'],
       displayProfilePopup: false,
+      displayAddCollaboratorPopup: false,
+      nameCollaboratorInPopup: "",
+      isNameCollaboratorInPopupEmpty: false,
       nameProfileSelected: "",
       colorProfileSelected: ""
     }
@@ -71,6 +86,7 @@ class AddEventScreenClass extends Component {
   }
 
   onclickCloseButton = () => {
+    this.props.route.params.callback()
     this.props.navigation.pop()
   }
 
@@ -79,6 +95,22 @@ class AddEventScreenClass extends Component {
       this.setState({ isTitleEmpty: true })
     } else {
       this.setState({ isTitleEmpty: false })
+    }
+  }
+
+  validateDetail = () => {
+    if (this.state.detailText.length == 0) {
+      this.setState({ isDetailEmpty: true })
+    } else {
+      this.setState({ isDetailEmpty: false })
+    }
+  }
+
+  validateTime = () => {
+    if (this.state.timeSelected == 0) {
+      this.setState({ isTimeEmpty: true })
+    } else {
+      this.setState({ isTimeEmpty: false })
     }
   }
 
@@ -93,12 +125,81 @@ class AddEventScreenClass extends Component {
 
   handleConfirm = (date) => {
     console.log("A date has been picked: ", date.toLocaleTimeString().replace(/(.*)\D\d+/, '$1'));
+    this.state.timeSelected = date.toLocaleTimeString().replace(/(.*)\D\d+/, '$1')
     this.setState({ timeSelected: date.toLocaleTimeString().replace(/(.*)\D\d+/, '$1') })
     this.hideDatePicker();
+    this.validateTime()
   };
 
   onclickAddEventButton = () => {
+    if (this.state.titleText.length == 0) {
+      this.setState({ isTitleEmpty: true })
+    }
 
+    if (this.state.detailText.length == 0) {
+      this.setState({ isDetailEmpty: true })
+    }
+
+    if (this.state.timeSelected == 0) {
+      this.setState({ isTimeEmpty: true })
+    }
+
+    if (this.state.titleText.length != 0 && this.state.detailText.length != 0 && this.state.timeSelected.length != 0) {
+      this.setState({ isLoading: true })
+      AsyncStorage.getItem('@Email', (err, result) => {
+        try {
+          fetch('https://calendar-mytime.herokuapp.com/addevent', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              "email": JSON.parse(result).email.toLowerCase(),
+              "selectedDate": this.state.selectedDateOnClick,
+              "eventsList": {
+                "title": this.state.titleText,
+                "detail": this.state.detailText,
+                "participants": this.state.collaborators,
+                "time": this.state.timeSelected
+              },
+              "calendar": {
+                "markedData": this.state.selectedDateOnClick,
+                "selectedColor": "orange"
+              }
+            })
+          })
+            .then((response) => response.json())
+            .then((json) => {
+              let code = json.code
+              let message = json.message
+              if (code == 200 && message == "success") {
+                console.log("add events success")
+                console.log(json)
+                this.setState({ isLoading: false })
+                this.setState({ collaborators: [] })
+                this.setState({ nameCollaboratorInPopup: "" })
+                this.setState({ isNameCollaboratorInPopupEmpty: false })
+                this.setState({ displayAddCollaboratorPopup: false })
+                this.setState({ titleText: "" })
+                this.setState({ detailText: "" })
+                this.setState({ timeSelected: "" })
+                this.setState({ isTitleEmpty: false })
+                this.setState({ isDetailEmpty: false })
+                this.setState({ isTimeEmpty: false })
+                if (json.code == 200, json.message == "success") {
+                  this.onclickCloseButton()
+                }
+              } else {
+                console.log("not found data")
+                this.setState({ isLoading: false })
+              }
+            })
+        } catch (error) {
+          console.log("not found data. failed")
+          this.setState({ isRefreshing: false })
+        }
+      })
+    }
   }
 
   onclickName = (name, index) => {
@@ -106,6 +207,25 @@ class AddEventScreenClass extends Component {
     this.setState({ nameProfileSelected: name })
     this.setState({ colorProfileSelected: this.state.collaboratorColors[index] })
     this.setState({ displayProfilePopup: true })
+  }
+
+  validateNameCollaboratorInPopup = () => {
+    if (this.state.nameCollaboratorInPopup.length == 0) {
+      this.setState({ isNameCollaboratorInPopupEmpty: true })
+    } else {
+      this.setState({ isNameCollaboratorInPopupEmpty: false })
+    }
+  }
+  onclickAddCollaboratorInPopup = () => {
+    console.log("onclickAddCollaboratorInPopup")
+    this.validateNameCollaboratorInPopup()
+    if (this.state.nameCollaboratorInPopup.length != 0) {
+      this.state.collaborators.push(this.state.nameCollaboratorInPopup)
+      this.setState({ collaborators: this.state.collaborators })
+      this.setState({ nameCollaboratorInPopup: "" })
+      this.setState({ isNameCollaboratorInPopupEmpty: false })
+      this.setState({ displayAddCollaboratorPopup: false })
+    }
   }
 
   render() {
@@ -129,7 +249,8 @@ class AddEventScreenClass extends Component {
           contentContainerStyle={{
             flexGrow: 1,
             justifyContent: 'center',
-            flexDirection: 'column'
+            flexDirection: 'column',
+            paddingBottom: 40,
           }}>
           <View style={styles.container}>
             <Loader isLoading={this.state.isLoading} />
@@ -228,23 +349,23 @@ class AddEventScreenClass extends Component {
               {this.state.isTitleEmpty && <Text style={styles.errorText}>{this.state.emptyText}</Text>}
               <View style={styles.title}>
                 <TextInput
-                  originalColor={this.state.isTitleEmpty ? 'red' : ''}
+                  originalColor={this.state.isDetailEmpty ? 'red' : ''}
                   placeholder='รายละเอียด'
                   animatedPlaceholderTextColor='#B2B1B9'
-                  onChangeText={(text: string) => { this.setState({ titleText: text }) }}
+                  onChangeText={(text: string) => { this.setState({ detailText: text }) }}
                   returnKeyType='done'
-                  onBlur={() => this.validateTitle()}
+                  onBlur={() => this.validateDetail()}
                   autoCorrect={false}
                   spellCheck={false}
                   textInputStyle={{ backgroundColor: '#f7f9fc' }}
-                  onSubmitEditing={() => { this.validateTitle() }} />
+                  onSubmitEditing={() => { this.validateDetail() }} />
               </View>
-              {this.state.isTitleEmpty && <Text style={styles.errorText}>{this.state.emptyText}</Text>}
+              {this.state.isDetailEmpty && <Text style={styles.errorText}>{this.state.emptyText}</Text>}
               <View style={styles.time}>
                 <TextInput
                   value={this.state.timeSelected}
                   editable={false}
-                  originalColor={this.state.isTitleEmpty ? 'red' : ''}
+                  originalColor={this.state.isTimeEmpty ? 'red' : ''}
                   placeholder='เวลา'
                   animatedPlaceholderTextColor='#B2B1B9'
                   textInputStyle={{ backgroundColor: '#f6f6f6', width: '85%' }}
@@ -267,34 +388,38 @@ class AddEventScreenClass extends Component {
                   onCancel={this.hideDatePicker}
                 />
               </View>
+              {this.state.isTimeEmpty && <Text style={styles.errorText}>จำเป็นต้องเลือกเวลา</Text>}
               <View style={styles.separator_1} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
               <Text style={styles.memberText}>เพิ่มผู้มีส่วนร่วมในกิจกรรม</Text>
               <View style={styles.avatarMembers}>
                 <View style={styles.avatarMembers_1}>
-                  <ScrollView
-                    showsHorizontalScrollIndicator={true}
-                    horizontal={true}
-                    contentContainerStyle={{
-                      flexGrow: 1,
-                      height: 50,
-                    }}>
-                    {this.state.collaborators.map((item, index) => {
-                      return (
-                        <TouchableOpacity
-                          key={index}
-                          onPress={() => this.onclickName(item, index)}>
-                          <UserAvatar
-                            size={50}
-                            style={{ marginRight: 10 }}
-                            name={item}
-                            bgColor={this.state.collaboratorColors[index]} />
-                        </TouchableOpacity>
-                      )
-                    })}
-                  </ScrollView>
+                  {this.state.collaborators.length != 0 ?
+                    <ScrollView
+                      showsHorizontalScrollIndicator={true}
+                      horizontal={true}
+                      contentContainerStyle={{
+                        flexGrow: 1,
+                        height: 50,
+                      }}>
+                      {this.state.collaborators.map((item, index) => {
+                        return (
+                          <TouchableOpacity
+                            key={index}
+                            onPress={() => this.onclickName(item, index)}>
+                            <UserAvatar
+                              size={50}
+                              style={{ marginRight: 10 }}
+                              name={item}
+                              bgColor={this.state.collaboratorColors[index]} />
+                          </TouchableOpacity>
+                        )
+                      })}
+                    </ScrollView> :
+                    <Text style={{ color: 'grey', flex: 1, alignSelf: 'center', marginTop: 10 }}>ยังไม่มีผู้มีส่วนร่วมในกิจกรรมนี้</Text>}
                 </View>
                 <TouchableOpacity
-                  style={{ justifyContent: 'center', left: 10 }}>
+                  style={{ justifyContent: 'center', left: 10 }}
+                  onPress={() => { this.setState({ displayAddCollaboratorPopup: true }) }}>
                   <Image source={require("../../assets/images/ic_add_member.png")}
                     style={{ width: 42, height: 42 }} />
                 </TouchableOpacity>
@@ -306,22 +431,67 @@ class AddEventScreenClass extends Component {
           transparent={true}
           animationType='fade'
           visible={this.state.displayProfilePopup}>
-          <TouchableWithoutFeedback style={{ flex: 1 }} onPress={() => this.setState({ displayProfilePopup: false })}>
-            <View style={styles.modalBackground}>
-              <View style={styles.popup}>
-                <View
-                  style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}
-                >
-                  <UserAvatar
-                    size={50}
-                    name={this.state.nameProfileSelected}
-                    bgColor={this.state.colorProfileSelected} />
-                  <Text style={{ fontSize: 22, paddingLeft: 8 }}> {this.state.nameProfileSelected}</Text>
-                </View>
+          <TouchableWithoutFeedback
+            onPress={() => {
+              this.setState({ displayProfilePopup: false })
+            }}>
+            <View style={styles.modalOverlay} />
+          </TouchableWithoutFeedback>
+          <View style={styles.modalBackgroundCollaborator}>
+            <View style={styles.popup}>
+              <View
+                style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}
+              >
+                <UserAvatar
+                  size={50}
+                  name={this.state.nameProfileSelected}
+                  bgColor={this.state.colorProfileSelected} />
+                <Text style={{ fontSize: 22, paddingLeft: 8 }}> {this.state.nameProfileSelected}</Text>
               </View>
             </View>
+          </View>
+        </Modal>
+        <Modal
+          transparent={true}
+          animationType='fade'
+          visible={this.state.displayAddCollaboratorPopup}>
+          <TouchableWithoutFeedback
+            onPress={() => {
+              this.setState({ nameCollaboratorInPopup: "" })
+              this.setState({ isNameCollaboratorInPopupEmpty: false })
+              this.setState({ displayAddCollaboratorPopup: false })
+            }}>
+            <View style={styles.modalOverlay} />
           </TouchableWithoutFeedback>
-
+          <View style={styles.modalBackground}>
+            <View style={styles.popupCollaborator}>
+              <Text style={{ alignSelf: 'center', fontWeight: '500', marginTop: 20, marginBottom: 20 }}>เพิ่มผู้มีส่วนร่วมในกิจกรรม</Text>
+              <View
+                style={{ flexDirection: 'row', marginLeft: 20 }}
+              >
+                <UserAvatar
+                  size={50}
+                  name={this.state.nameCollaboratorInPopup}
+                  bgColor={this.state.collaboratorColors[this.state.collaborators.length]} />
+                <TextInput
+                  originalColor={this.state.isNameCollaboratorInPopupEmpty ? 'red' : ''}
+                  placeholder='ชื่อผู้มีส่วนร่วมในกิจกรรม'
+                  animatedPlaceholderTextColor='#B2B1B9'
+                  onChangeText={(text: string) => { this.setState({ nameCollaboratorInPopup: text }) }}
+                  returnKeyType='done'
+                  autoCorrect={false}
+                  spellCheck={false}
+                  textInputStyle={{ backgroundColor: '#f7f9fc', width: '85%', marginLeft: 8 }}
+                  onSubmitEditing={() => { this.validateNameCollaboratorInPopup() }} />
+              </View>
+              {this.state.isNameCollaboratorInPopupEmpty && <Text style={styles.errorTextInPopup}>{this.state.emptyText}</Text>}
+              <TouchableOpacity
+                style={styles.button}
+                onPress={() => { this.onclickAddCollaboratorInPopup() }}>
+                <Text style={styles.buttonTitle}>เพิ่ม</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         </Modal>
         <TouchableOpacity
           style={styles.addEventButton}
@@ -379,6 +549,13 @@ const styles = StyleSheet.create({
     color: 'red',
     alignSelf: 'flex-start'
   },
+  errorTextInPopup: {
+    fontSize: 10,
+    top: 4,
+    right: 24,
+    color: 'red',
+    alignSelf: 'center'
+  },
   addEventButton: {
     marginTop: 12,
     borderRadius: 25,
@@ -406,15 +583,27 @@ const styles = StyleSheet.create({
   memberText: {
     alignSelf: 'flex-start',
     marginTop: 10,
-    marginLeft: 18,
+    marginLeft: '6%',
+    fontWeight: '500'
   },
   modalBackground: {
-    flex: 1,
+    marginTop: '75%',
+    margin: '5%',
     alignItems: 'center',
-    flexDirection: 'column',
-    justifyContent: 'space-around',
-    backgroundColor: '#rgba(0, 0, 0, 0.5)',
-    zIndex: 1000
+    justifyContent: 'center',
+    alignSelf: 'center',
+    alignContent: 'center',
+    backgroundColor: 'transparent',
+    zIndex: 1,
+  },
+  modalBackgroundCollaborator: {
+    top: '45%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: 'center',
+    alignContent: 'center',
+    backgroundColor: 'transparent',
+    zIndex: 1,
   },
   modalOverlay: {
     position: 'absolute',
@@ -422,27 +611,35 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: 'rgba(0,0,0,0.5)'
+    backgroundColor: 'rgba(0,0,0,0.5)',
   },
-
   popup: {
     backgroundColor: '#FFFFFF',
-    height: 80,
-    width: '45%',
+    width: 300,
+    height: 100,
     borderRadius: 10,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center'
   },
+  popupCollaborator: {
+    backgroundColor: '#FFFFFF',
+    height: 210,
+    width: '90%',
+    borderRadius: 10,
+    display: 'flex',
+  },
   buttonTitle: {
     color: 'white',
   },
   button: {
+    marginTop: 20,
     borderRadius: 25,
-    backgroundColor: '#413F42',
+    backgroundColor: 'black',
     color: '#FFFFFF',
     width: 100,
     height: 50,
+    alignSelf: 'center',
     alignItems: 'center',
     justifyContent: 'center',
   },

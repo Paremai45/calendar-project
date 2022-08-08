@@ -145,7 +145,11 @@ class HomeScreenClass extends Component {
   }
 
   onclickAddEventButton = () => {
-    this.props.navigation.navigate('AddEvent')
+    this.props.navigation.navigate('AddEvent', { callback: this.callback.bind(this) })
+  }
+
+  callback() {
+    this.fetchEvents()
   }
 
   onclickDates = () => {

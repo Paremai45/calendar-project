@@ -8,9 +8,9 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import * as React from 'react';
-import { Button, ColorSchemeName, Pressable, TouchableHighlight, View } from 'react-native';
+import { ColorSchemeName, Pressable, TouchableHighlight, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 
 import Colors from '../constants/Colors';
 import useColorScheme from '../hooks/useColorScheme';
@@ -89,7 +89,7 @@ function LoginRootNavigator() {
         <Stack.Screen name="Modal" component={ModalScreen} />
       </Stack.Group>
       <Stack.Group>
-        <Stack.Screen name="AddEvent" component={AddEventScreen} options={{ headerShown: true, title: "", headerShadowVisible: false, headerBackTitleVisible: false, headerTintColor: 'black' }} />
+        <Stack.Screen name="AddEvent" component={AddEventScreen} options={{ headerShown: false, title: "", headerShadowVisible: false, headerBackTitleVisible: false, headerTintColor: 'black' }} />
       </Stack.Group>
     </Stack.Navigator>
   );
