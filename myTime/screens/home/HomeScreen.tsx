@@ -360,7 +360,7 @@ class HomeScreenClass extends Component {
         <Modal
           transparent={true}
           animationType='slide'
-          visible={true}>
+          visible={this.state.detailModal}>
           <TouchableWithoutFeedback
             onPress={() => {
               this.setState({ detailModal: false })
