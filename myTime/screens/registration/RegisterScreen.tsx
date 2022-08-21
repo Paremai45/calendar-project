@@ -1,4 +1,5 @@
 
+// @ts-nocheck
 import { StyleSheet, TouchableHighlight, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { Text, View } from '../../components/Themed';
 import { useEffect, useState } from 'react';
@@ -10,6 +11,7 @@ import { Base64 } from 'js-base64';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
 import { RootSiblingParent } from 'react-native-root-siblings';
 import Toast from 'react-native-root-toast';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function RegisterScreen({ navigation }: RootStackScreenProps<'Register'>) {
   const [isLoading, setLoading] = useState(false);
@@ -50,50 +52,54 @@ export default function RegisterScreen({ navigation }: RootStackScreenProps<'Reg
     setShowedPopup(false)
     if (password == repeatPassword) {
       try {
-        fetch('https://calendar-mytime.herokuapp.com/register', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            "data": {
-              "email": email.toLowerCase(),
-              "firstname": firstName,
-              "lastname": lastName,
-              "password": Base64.encode(password),
-              "mobileNo": mobileNo
-            }
+        AsyncStorage.getItem('@NotiToken', (err, result) => {
+          console.log("notiToken", JSON.parse(result).notiToken)
+          fetch('https://calendar-mytime.herokuapp.com/register', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              "data": {
+                "email": email.toLowerCase(),
+                "firstname": firstName,
+                "lastname": lastName,
+                "password": Base64.encode(password),
+                "mobileNo": mobileNo,
+                "notiToken": JSON.parse(result).notiToken
+              }
+            })
           })
+            .then((response) => response.json())
+            .then((json) => {
+              let code = json.code
+              let message = json.message
+              console.log(json)
+              if (code == 200 && message == "success") {
+                console.log("registration success")
+                setShowedToast(true)
+                setTimeout(function () {
+                  setLoading(false)
+                }, 2000);
+                setTimeout(function () {
+                  setShowedToast(false)
+                  navigation.goBack()
+                }, 3000);
+              } else if (code == 200 && message == "existing") {
+                setLoading(false);
+                setShowedPopup(true)
+                setTitlePopup("ขออภัยในความไม่สะดวก")
+                setMessagePopup("อีเมลล์นี้ถูกใช้งานแล้ว กรุณาเลือกใช้อีเมลล์อื่น")
+                console.log("registration existing")
+              } else {
+                setLoading(false);
+                setShowedPopup(true)
+                setTitlePopup("ขออภัยในความไม่สะดวก")
+                setMessagePopup("เกิดข้อผิดพลาดจากทางเซิฟเวอร์ กรุณาลองอีกครั้ง")
+                console.log("registration error")
+              }
+            })
         })
-          .then((response) => response.json())
-          .then((json) => {
-            let code = json.code
-            let message = json.message
-            console.log(json)
-            if (code == 200 && message == "success") {
-              console.log("registration success")
-              setShowedToast(true)
-              setTimeout(function () {
-                setLoading(false)
-              }, 2000);
-              setTimeout(function () {
-                setShowedToast(false)
-                navigation.goBack()
-              }, 3000);
-            } else if (code == 200 && message == "existing") {
-              setLoading(false);
-              setShowedPopup(true)
-              setTitlePopup("ขออภัยในความไม่สะดวก")
-              setMessagePopup("อีเมลล์นี้ถูกใช้งานแล้ว กรุณาเลือกใช้อีเมลล์อื่น")
-              console.log("registration existing")
-            } else {
-              setLoading(false);
-              setShowedPopup(true)
-              setTitlePopup("ขออภัยในความไม่สะดวก")
-              setMessagePopup("เกิดข้อผิดพลาดจากทางเซิฟเวอร์ กรุณาลองอีกครั้ง")
-              console.log("registration error")
-            }
-          })
       } catch (error) {
         setLoading(false);
         setShowedPopup(true)

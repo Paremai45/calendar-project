@@ -3,14 +3,17 @@
  * https://reactnavigation.org/docs/getting-started
  *
  */
+// @ts-nocheck
 import { FontAwesome } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import * as React from 'react';
-import { ColorSchemeName, Pressable, TouchableHighlight, View } from 'react-native';
+import { Alert, ColorSchemeName, Platform, Pressable, TouchableHighlight, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import * as Notifications from 'expo-notifications'
+import Constants from 'expo-constants'
 
 import Colors from '../constants/Colors';
 import useColorScheme from '../hooks/useColorScheme';
@@ -18,6 +21,8 @@ import useColorScheme from '../hooks/useColorScheme';
 import { RootStackParamList, RootTabParamList, RootTabScreenProps } from '../types';
 import LinkingConfiguration from './LinkingConfiguration';
 import { Text } from '../components/Themed';
+
+import { initializeApp } from 'firebase/app';
 
 // Screens
 import LoginScreen from '../screens/registration/LoginScreen';
@@ -27,12 +32,38 @@ import HomeScreen from '../screens/home/HomeScreen';
 import AddEventScreen from '../screens/home/AddEventScreen';
 import ModalScreen from '../screens/ModalScreen';
 import NotFoundScreen from '../screens/NotFoundScreen';
-import TabTwoScreen from '../screens/TabTwoScreen';
+import TabTwoScreen from '../screens/home/TabTwoScreen';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCUalkZI-eB5Acz7Bk18Aa45YMEayCS0WA",
+  authDomain: "calendar-88c48.firebaseapp.com",
+  databaseURL: "https://calendar-88c48-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "calendar-88c48",
+  storageBucket: "calendar-88c48.appspot.com",
+  messagingSenderId: "115992841348",
+  appId: "1:115992841348:web:a955dfc4e644d109b786d1"
+};
+
+initializeApp(firebaseConfig);
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false
+  })
+})
 
 export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeName }) {
   const [isLogin, setLogin] = useState(false)
   const [isMount, setMount] = useState(false)
   const [isDone, setDone] = useState(false)
+
+  // Notification
+  const [expoPushToken, setExpoPushToken] = useState('')
+  const [notification, setNotification] = useState(false)
+  const responseListener = useRef()
+
   useEffect(() => {
     async function fetchUser() {
       AsyncStorage.getItem('@Login', (err, result) => {
@@ -55,10 +86,54 @@ export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeNa
   }, [isLogin])
 
   useEffect(() => {
+    // Notification
+    registerForPushNotificationsAsync().then(token => {
+      console.log(token)
+      setExpoPushToken(token)
+    })
+  }, [])
+
+  useEffect(() => {
     if (isDone) {
       setMount(true)
     }
   }, [isDone])
+
+  async function registerForPushNotificationsAsync() {
+    let token
+    if (Constants.isDevice) {
+      const { status: existingStatus } = await Notifications.getPermissionsAsync()
+      let finalStatus = existingStatus
+      if (existingStatus !== 'granted') {
+        const { status } = await Notifications.requestPermissionsAsync()
+        finalStatus = status
+      }
+      if (finalStatus !== 'granted') {
+        Alert.alert('Failed to get push token for push notification!')
+        return
+      }
+      token = (await Notifications.getExpoPushTokenAsync()).data
+      try {
+        AsyncStorage.setItem(
+          '@NotiToken',
+          JSON.stringify({ notiToken: token })
+        );
+      } catch (error) {
+        // Error saving data
+      }
+    }
+
+    if (Platform.OS === 'android') {
+      Notifications.setNotificationChannelAsync('default', {
+        name: 'default',
+        importance: Notifications.AndroidImportance.MAX,
+        vibrationPattern: [0, 250, 250, 250],
+        lightColor: '#FF231F7C'
+      })
+    }
+
+    return token
+  }
 
   if (!isMount) {
     return (<View style={{ backgroundColor: 'white', flex: 1 }}></View>);

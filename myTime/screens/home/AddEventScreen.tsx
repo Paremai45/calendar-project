@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { StyleSheet, TouchableOpacity, Image, SafeAreaView, ScrollView, StatusBar, Platform, Modal, TouchableWithoutFeedback } from 'react-native';
+import { StyleSheet, TouchableOpacity, Image, SafeAreaView, ScrollView, StatusBar, Platform, Modal, TouchableWithoutFeedback, Alert } from 'react-native';
 import { Text, View } from '../../components/Themed';
 import React, { Component } from 'react';
 import { Calendar, LocaleConfig } from 'react-native-calendars';
@@ -11,6 +11,8 @@ import DateTimePicker from 'react-native-modal-datetime-picker';
 import UserAvatar from 'react-native-user-avatar';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import 'react-native-get-random-values';
+import { v4 as uuidv4 } from "uuid"
 
 export default function AddEventScreen({ navigation, route }: RootStackScreenProps<'AddEvent'>) {
   return (
@@ -88,6 +90,13 @@ class AddEventScreenClass extends Component {
       selectedColor: 'pink'
     }
   }
+  // componentDidMount() {
+  //   Alert.alert("เพิ่มกิจกรรมเรียบร้อย 🥳", "เพื่อให้คุณไม่พลาดในทุกๆกิจกรรม \n ระบบจะทำการแจ้งเตือนกิจกรรมต่างๆ \nโดยจะแจ้งเตือนตามเวลาดังนี้ 🔔" +
+  //     "\n\n แจ้งเตือนล่วงหน้า" +
+  //     "\n1, 2, 5, 10, 30 นาที" +
+  //     "\n1, 3, 5 ชั่วโมง" +
+  //     "\n1, 5, 15 วัน", [{ text: "รับทราบ", onPress: () => { this.onclickCloseButton() } }])
+  // }
 
   onclickCloseButton = () => {
     this.props.navigation.pop()
@@ -167,6 +176,7 @@ class AddEventScreenClass extends Component {
               "email": JSON.parse(result).email.toLowerCase(),
               "selectedDate": this.state.selectedDateOnClick,
               "eventsList": {
+                "eventId": uuidv4(),
                 "title": this.state.titleText,
                 "detail": this.state.detailText,
                 "participants": this.state.collaborators,
@@ -200,7 +210,11 @@ class AddEventScreenClass extends Component {
                 this.setState({ isTimeEmpty: false })
                 if (json.code == 200, json.message == "success") {
                   this.props.route.params.callback()
-                  this.onclickCloseButton()
+                  Alert.alert("เพิ่มกิจกรรมเรียบร้อย 🥳", "เพื่อให้คุณไม่พลาดในทุกๆกิจกรรม \n ระบบจะทำการแจ้งเตือนกิจกรรมต่างๆ \nโดยจะแจ้งเตือนตามเวลาดังนี้ 🔔" +
+                    "\n\n แจ้งเตือนล่วงหน้า" +
+                    "\n1, 2, 5, 10, 30 นาที" +
+                    "\n1, 3, 5 ชั่วโมง" +
+                    "\n1, 5, 15 วัน", [{ text: "รับทราบ", onPress: () => { this.onclickCloseButton() } }])
                 }
               } else {
                 console.log("not found data")
@@ -209,7 +223,10 @@ class AddEventScreenClass extends Component {
             })
         } catch (error) {
           console.log("not found data. failed")
+          console.log(error)
+          this.setState({ isLoading: false })
           this.setState({ isRefreshing: false })
+          Alert.alert("ขออภัย 🥲", "เกิดข้อผิดพลาดจากระบบ กรุณาลองอีกครั้ง", [{ text: "ตกลง" }])
         }
       })
     }

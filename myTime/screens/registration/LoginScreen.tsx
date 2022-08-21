@@ -1,7 +1,8 @@
-import { KeyboardAvoidingView, Platform, StyleSheet, TouchableHighlight, TouchableOpacity } from 'react-native';
+// @ts-nocheck
+import { Alert, KeyboardAvoidingView, Platform, StyleSheet, TouchableHighlight, TouchableOpacity } from 'react-native';
 import { Text, View } from '../../components/Themed';
 import TextInput from "react-native-text-input-interactive";
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { RootStackScreenProps } from '../../types';
 import { RootSiblingParent } from 'react-native-root-siblings';
 import Toast from 'react-native-root-toast';
@@ -9,6 +10,7 @@ import Loader from '../../components/Loader';
 import PopupModal from '../../components/Popup'
 import { Base64 } from 'js-base64';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Notifications from 'expo-notifications'
 
 export default function LoginScreen({ navigation }: RootStackScreenProps<'Login'>) {
   const [isEmailEmpty, setEmailEmpty] = useState(false)
@@ -18,6 +20,7 @@ export default function LoginScreen({ navigation }: RootStackScreenProps<'Login'
   const [isShowedPopup, setShowedPopup] = useState(false);
   const [isShowedToast, setShowedToast] = useState(false);
   const [isLoading, setLoading] = useState(false);
+  const [isLogin, setLogin] = useState(false)
 
   const [isInValidEmail, setInValidEmail] = useState(false);
   const [isEmailValid, setEmailValid] = useState(false)
@@ -31,6 +34,34 @@ export default function LoginScreen({ navigation }: RootStackScreenProps<'Login'
   const [toastMessage, setToastMessage] = useState("");
   const invalidEmailMessage = "อีเมลล์ไม่ถูกฟอร์แมต"
   const emptyMessage = "จำเป็นต้องกรอก"
+
+  const responseListener = useRef()
+
+  useEffect(() => {
+    async function fetchUser() {
+      AsyncStorage.getItem('@Login', (err, result) => {
+        if (result != null) {
+          if (JSON.parse(result).isLogin) {
+            console.log("Already Login")
+            setLogin(true)
+          } else {
+            setLogin(false)
+          }
+        } else {
+          setLogin(false)
+        }
+      })
+    }
+    fetchUser()
+    responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
+      if (!isLogin) {
+        Alert.alert("ขออภัย 🥲", "กรุณาเข้าสู่ระบบเพื่อดูรายละเอียดกิจกรรมของคุณ", [{ text: "ตกลง" }])
+      }
+    })
+    return () => {
+      Notifications.removeNotificationSubscription(responseListener.current)
+    }
+  }, [])
 
   const validateEmail = () => {
     if (email.length == 0) {

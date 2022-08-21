@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "115992841348",
+    "firebase_url": "https://calendar-88c48-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "calendar-88c48",
+    "storage_bucket": "calendar-88c48.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:115992841348:android:22060113a1c5fa06b786d1",
+        "android_client_info": {
+          "package_name": "com.paremaiparemai.myTime"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "115992841348-ovngg2k834qp3vqc96qia7s5v8jva27q.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD29r5xpY8zhZvuWdczzthqF0nwBc_awCI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "115992841348-ovngg2k834qp3vqc96qia7s5v8jva27q.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,8 +1,8 @@
 // @ts-nocheck
-import { FlatList, Image, Modal, RefreshControl, SafeAreaView, ScrollView, StatusBar, StyleSheet, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
+import { Alert, FlatList, Image, LogBox, Modal, RefreshControl, SafeAreaView, ScrollView, StatusBar, StyleSheet, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
 import { Text, View } from '../../components/Themed';
 import { RootTabScreenProps } from '../../types';
-import { Component } from 'react';
+import { Component, useEffect, useRef } from 'react';
 import { Calendar, DateData } from 'react-native-calendars';
 import { LocaleConfig } from 'react-native-calendars';
 import ActionButton from 'react-native-action-button';
@@ -11,6 +11,13 @@ import localization from 'moment/locale/th';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Loader from '../../components/Loader';
 import UserAvatar from 'react-native-user-avatar';
+import * as Notifications from 'expo-notifications'
+import Swipeable from 'react-native-swipeable';
+
+LogBox.ignoreLogs([
+  "ViewPropTypes will be removed",
+  "ColorPropType will be removed",
+])
 
 export default function HomeScreen({ navigation }: RootTabScreenProps<'HomeScreen'>) {
   return (
@@ -29,6 +36,8 @@ class HomeScreenClass extends Component {
     };
     LocaleConfig.defaultLocale = 'fr'
     this.state = {
+      mounted: false,
+      email: "",
       eventsList: [],
       calendar: [],
       dateObjects: {},
@@ -62,6 +71,9 @@ class HomeScreenClass extends Component {
         '#FFB3B3', '#C1EFFF', '#FFDBA4',
         '#FFB3B3', '#21E1E1', '#FF1E00',
         '#59CE8F', '#80558C', '#D1512D'],
+      displayProfilePopup: false,
+      nameProfileSelected: "",
+      colorProfileSelected: "",
       itemData: {}
     };
     // Handle dates
@@ -72,7 +84,13 @@ class HomeScreenClass extends Component {
   }
 
   componentDidMount() {
+    this.state.mounted = true
+    this.handleNotification()
     this.fetchEvents()
+  }
+
+  componentWillUnmount() {
+    this.state.mounted = false
   }
 
   fetchEvents = () => {
@@ -82,13 +100,14 @@ class HomeScreenClass extends Component {
     this.setState({ calendar: [] })
     this.setState({ dateObjects: {} })
     this.setState({ oldSelectedDate: "" })
-    this.setState({ selectedDateOnClick: "" })
+    this.setState({ selectedDateOnClick: this.state.currentDate })
     this.setState({ isEventsListEmpty: false })
     if (!this.state.isRefreshing) {
       this.setState({ isLoading: true })
     }
     AsyncStorage.getItem('@Email', (err, result) => {
       try {
+        this.state.email = JSON.parse(result).email.toLowerCase()
         fetch('https://calendar-mytime.herokuapp.com/getEvents', {
           method: 'POST',
           headers: {
@@ -103,6 +122,9 @@ class HomeScreenClass extends Component {
           .then((json) => {
             let code = json.code
             let message = json.message
+            if (this.state.mounted) {
+
+            }
             if (code == 200 && message == "success") {
               console.log("get events success")
               this.setState({ isLoading: false })
@@ -161,6 +183,48 @@ class HomeScreenClass extends Component {
           selectedColor: 'pink'
         }
         this.setState({ dateObjects: this.state.dateObjects })
+      }
+    })
+  }
+
+  handleNotification = () => {
+    Notifications.addNotificationResponseReceivedListener(response => {
+      if (this.state.mounted) {
+        if (!this.props.navigation.isFocused()) {
+          this.props.navigation.navigate('HomeScreen')
+        }
+        this.setState({ isLoading: true })
+        console.log("eventId:", response.notification.request.content.data.detail)
+        let eventId = response.notification.request.content.data.detail
+        try {
+          fetch('https://calendar-mytime.herokuapp.com/getEventsByEventId', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              "email": this.state.email,
+              "eventId": eventId
+            })
+          })
+            .then((response) => response.json())
+            .then((json) => {
+              let code = json.code
+              let message = json.message
+              if (code == 200 && message == "success") {
+                console.log("get event by eventId success")
+                this.setState({ isLoading: false })
+                this.setState({ itemData: json.result })
+                this.setState({ detailModal: true })
+              } else {
+                this.setState({ isLoading: false })
+                Alert.alert("ขออภัย 🥲", "ระบบไม่สามารถค้นหารายละเอียดกิจกรรมนี้ได้", [{ text: "ตกลง" }])
+              }
+            })
+        } catch (error) {
+          this.setState({ isLoading: false })
+          Alert.alert("ขออภัย 🥲", "ระบบไม่สามารถค้นหารายละเอียดกิจกรรมนี้ได้", [{ text: "ตกลง" }])
+        }
       }
     })
   }
@@ -229,6 +293,13 @@ class HomeScreenClass extends Component {
 
   onRefresh() {
     this.setState({ isRefreshing: true, }, () => { this.fetchEvents(); });
+  }
+
+  onclickName = (name, index) => {
+    console.log(name, index)
+    this.setState({ nameProfileSelected: name })
+    this.setState({ colorProfileSelected: this.state.collaboratorColors[index] })
+    this.setState({ displayProfilePopup: true })
   }
 
   render() {
@@ -332,21 +403,68 @@ class HomeScreenClass extends Component {
                       <Text style={styles.titleEvent}>กิจกรรมในวันที่ {this.state.selectedDateShowing}</Text>
                     </View>
                     {this.state.eventsList.map((item, index) => {
-                      return (
+                      const rightButtons = [
                         <TouchableOpacity
-                          key={index}
-                          onPress={() => this.onclickItem(item)}>
-                          <View style={styles.item}>
-                            <View style={styles.item_circle}></View>
-                            <View style={styles.item_content}>
-                              <Text style={{ fontSize: 17, fontWeight: "bold", marginBottom: 4 }} >{item.title}</Text>
-                              <Text style={{ fontSize: 13, fontWeight: "normal", color: 'grey' }} >{item.detail}</Text>
+                          style={{ paddingTop: 2 }}
+                          onPress={() => {
+                            Alert.alert("ต้องการที่จะลบกิจกรรมหรือไม่ ?",
+                              "การลบกิจกรรมใดๆนั้น ระบบไม่สามารถกู้คืนกลับมาได้ โปรดพิจารณาให้ถี่ถ้วนก่อนที่จะลบ",
+                              [{ text: "ยกเลิก" },
+                              {
+                                text: "ลบ", style: 'destructive', onPress: () => {
+                                  this.setState({ isLoading: true })
+                                  try {
+                                    fetch('https://calendar-mytime.herokuapp.com/deleteEventByEventId', {
+                                      method: 'POST',
+                                      headers: {
+                                        'Content-Type': 'application/json',
+                                      },
+                                      body: JSON.stringify({
+                                        "email": this.state.email,
+                                        "eventId": item.eventId,
+                                        "selectedDate": this.state.selectedDateOnClick
+                                      })
+                                    })
+                                      .then((response) => response.json())
+                                      .then((json) => {
+                                        let code = json.code
+                                        let message = json.message
+                                        if (code == 200 && message == "success") {
+                                          console.log("delete event by eventId success")
+                                          this.fetchEvents()
+                                        } else {
+                                          this.setState({ isLoading: false })
+                                          Alert.alert("ขออภัย 🥲", "ระบบไม่สามารถค้นหารายละเอียดกิจกรรมนี้ได้", [{ text: "ตกลง" }])
+                                        }
+                                      })
+                                  } catch (error) {
+                                    this.setState({ isLoading: false })
+                                    Alert.alert("ขออภัย 🥲", "ระบบไม่สามารถค้นหารายละเอียดกิจกรรมนี้ได้", [{ text: "ตกลง" }])
+                                  }
+                                }
+                              }])
+                          }}>
+                          <Image source={require("../../assets/images/ic_delete.png")}
+                            style={{ width: 65, height: 65 }} />
+                        </TouchableOpacity>,
+                      ];
+                      return (
+                        <Swipeable key={index} rightButtons={rightButtons}>
+                          <TouchableOpacity
+                            key={index}
+                            onPress={() => this.onclickItem(item)}>
+                            <View style={styles.item}>
+                              <View style={styles.item_circle}></View>
+                              <View style={styles.item_content}>
+                                <Text style={{ fontSize: 17, fontWeight: "bold", marginBottom: 4 }} >{item.title}</Text>
+                                <Text style={{ fontSize: 13, fontWeight: "normal", color: 'grey' }} >{item.detail}</Text>
+                              </View>
+                              <View style={styles.item_time}>
+                                <Text style={{ fontWeight: 'bold', color: "black" }}>{item.time} น.</Text>
+                              </View>
                             </View>
-                            <View style={styles.item_time}>
-                              <Text style={{ fontWeight: 'bold', color: "black" }}>{item.time} น.</Text>
-                            </View>
-                          </View>
-                        </TouchableOpacity>
+                          </TouchableOpacity>
+                        </Swipeable>
                       )
                     })}
                   </View>}
@@ -464,6 +582,30 @@ class HomeScreenClass extends Component {
               </View>
             </View>
           </View>
+          <Modal
+            transparent={true}
+            animationType='fade'
+            visible={this.state.displayProfilePopup}>
+            <TouchableWithoutFeedback
+              onPress={() => {
+                this.setState({ displayProfilePopup: false })
+              }}>
+              <View style={styles.modalOverlayPopupCollaborator} />
+            </TouchableWithoutFeedback>
+            <View style={styles.modalBackgroundCollaborator}>
+              <View style={styles.popupCollaborator}>
+                <View
+                  style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}
+                >
+                  <UserAvatar
+                    size={50}
+                    name={this.state.nameProfileSelected}
+                    bgColor={this.state.colorProfileSelected} />
+                  <Text style={{ fontSize: 22, paddingLeft: 8 }}> {this.state.nameProfileSelected}</Text>
+                </View>
+              </View>
+            </View>
+          </Modal>
         </Modal>}
       </SafeAreaView >
     );
@@ -523,6 +665,15 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     zIndex: 1,
   },
+  modalBackgroundCollaborator: {
+    top: '45%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: 'center',
+    alignContent: 'center',
+    backgroundColor: 'transparent',
+    zIndex: 1,
+  },
   modalOverlay: {
     position: 'absolute',
     top: 0,
@@ -530,6 +681,14 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     backgroundColor: 'transparent',
+  },
+  modalOverlayPopupCollaborator: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(0,0,0,0.5)',
   },
   popup: {
     backgroundColor: '#FFFFFF',
@@ -564,6 +723,15 @@ const styles = StyleSheet.create({
     height: 12,
     borderRadius: 6,
     backgroundColor: 'pink',
+  },
+  popupCollaborator: {
+    backgroundColor: '#FFFFFF',
+    width: 300,
+    height: 100,
+    borderRadius: 10,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center'
   },
   avatarMembers: {
     marginTop: 8,
