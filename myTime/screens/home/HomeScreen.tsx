@@ -96,6 +96,9 @@ class HomeScreenClass extends Component {
   fetchEvents = () => {
     // GET Calendar data
     console.log("get data")
+    let currentDate = moment().format("YYYY/MM/DD")
+    this.state.currentDate = currentDate.split('/').join('-')
+    this.setState({ currentDate: this.state.currentDate })
     this.setState({ eventsList: [] })
     this.setState({ calendar: [] })
     this.setState({ dateObjects: {} })

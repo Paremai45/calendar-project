@@ -9,7 +9,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import * as React from 'react';
-import { Alert, ColorSchemeName, Platform, Pressable, TouchableHighlight, View } from 'react-native';
+import { Alert, AppState, ColorSchemeName, Linking, Platform, Pressable, TouchableHighlight, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useState, useEffect, useRef } from 'react';
 import * as Notifications from 'expo-notifications'
@@ -99,6 +99,60 @@ export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeNa
     }
   }, [isDone])
 
+  async function getNotificationPermission() {
+    const { status: existingStatus } = await Notifications.getPermissionsAsync()
+    return existingStatus
+  }
+
+  async function requestPermission() {
+    Alert.alert('เปิดแจ้งเตือน 🔔', "เพื่อไม่ให้พลาดในทุกๆกิจกรรมของคุณ \nกรุณาเปิดแจ้งเตือน", [{
+      text: "รับทราบ", onPress: () => {
+        Linking.openSettings()
+        let myInterval = setInterval(async () => {
+          console.log(AppState.currentState)
+          if (AppState.currentState == 'active') {
+            const existingStatus = await getNotificationPermission()
+            var isNotificationOn = false
+            console.log(existingStatus)
+            if (existingStatus === 'granted') {
+              isNotificationOn = true
+              clearInterval(myInterval)
+              AsyncStorage.getItem('@Email', (err, result) => {
+                try {
+                  fetch('https://calendar-mytime.herokuapp.com/updateToggle', {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                      "email": JSON.parse(result).email.toLowerCase(),
+                      "notification": true
+                    })
+                  })
+                    .then((response) => response.json())
+                    .then((json) => {
+                      let code = json.code
+                      let message = json.message
+                      if (code == 200 && message == "success") {
+                        console.log("update toggle success")
+                      } else {
+                        console.log("not found data")
+                      }
+                    })
+                } catch (error) {
+                  console.log(error)
+                }
+              })
+            } else {
+              clearInterval(myInterval)
+              await requestPermission()
+            }
+          }
+        }, 100)
+      }
+    }])
+  }
+
   async function registerForPushNotificationsAsync() {
     let token
     if (Constants.isDevice) {
@@ -109,8 +163,7 @@ export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeNa
         finalStatus = status
       }
       if (finalStatus !== 'granted') {
-        Alert.alert('Failed to get push token for push notification!')
-        return
+        await requestPermission()
       }
       token = (await Notifications.getExpoPushTokenAsync()).data
       try {
