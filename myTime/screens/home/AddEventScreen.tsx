@@ -612,7 +612,7 @@ const styles = StyleSheet.create({
   addEventButton: {
     marginTop: 12,
     borderRadius: 25,
-    marginBottom: Platform.OS === 'ios' ? 0 : 16,
+    marginBottom: 16,
     backgroundColor: '#8CC0DE',
     width: '80%',
     height: 50,
@@ -640,7 +640,7 @@ const styles = StyleSheet.create({
     fontWeight: '500'
   },
   modalBackground: {
-    marginTop: '75%',
+    marginTop: '60%',
     margin: '5%',
     alignItems: 'center',
     justifyContent: 'center',

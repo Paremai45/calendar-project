@@ -657,7 +657,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   modalBackground: {
-    marginTop: '65%',
+    marginTop: '50%',
     alignItems: 'center',
     justifyContent: 'center',
     alignSelf: 'center',
