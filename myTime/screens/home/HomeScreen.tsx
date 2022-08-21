@@ -122,9 +122,6 @@ class HomeScreenClass extends Component {
           .then((json) => {
             let code = json.code
             let message = json.message
-            if (this.state.mounted) {
-
-            }
             if (code == 200 && message == "success") {
               console.log("get events success")
               this.setState({ isLoading: false })

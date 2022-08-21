@@ -12,6 +12,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import { RootSiblingParent } from 'react-native-root-siblings';
 import Toast from 'react-native-root-toast';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Notifications from 'expo-notifications'
 
 export default function RegisterScreen({ navigation }: RootStackScreenProps<'Register'>) {
   const [isLoading, setLoading] = useState(false);
@@ -47,11 +48,16 @@ export default function RegisterScreen({ navigation }: RootStackScreenProps<'Reg
   const [titlePopup, setTitlePopup] = useState("");
   const [messagePopup, setMessagePopup] = useState("");
 
+  const getNotificationPermission = async () => {
+    const { status: existingStatus } = await Notifications.getPermissionsAsync()
+    return existingStatus
+  }
   const onclickRegisterButton = async () => {
     setLoading(true)
     setShowedPopup(false)
     if (password == repeatPassword) {
       try {
+        const existingStatus = await getNotificationPermission()
         AsyncStorage.getItem('@NotiToken', (err, result) => {
           console.log("notiToken", JSON.parse(result).notiToken)
           fetch('https://calendar-mytime.herokuapp.com/register', {
@@ -66,7 +72,8 @@ export default function RegisterScreen({ navigation }: RootStackScreenProps<'Reg
                 "lastname": lastName,
                 "password": Base64.encode(password),
                 "mobileNo": mobileNo,
-                "notiToken": JSON.parse(result).notiToken
+                "notiToken": JSON.parse(result).notiToken,
+                "notification": existingStatus === 'granted'
               }
             })
           })
