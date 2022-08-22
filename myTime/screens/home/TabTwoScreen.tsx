@@ -73,7 +73,7 @@ class TabTwoScreenClass extends Component {
   }
 
   onclickLogout = () => {
-    this.setState({ isLoading: false })
+    this.setState({ isLoading: true })
     setTimeout(() => {
       try {
         AsyncStorage.setItem(
