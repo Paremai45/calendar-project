@@ -133,7 +133,7 @@ class TabTwoScreenClass extends Component {
             <View style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', paddingTop: 24, paddingLeft: 24 }}>
               <UserAvatar
                 size={100}
-                name="Preeyapol Owatsuwan" bgColor={'rgba(140, 192, 222, 1)'} />
+                name={this.state.data.firstname + " " + this.state.data.lastname} bgColor={'rgba(140, 192, 222, 1)'} />
               <View style={{ flexDirection: 'column', justifyContent: 'flex-start', paddingLeft: 24 }}>
                 <Text style={{ fontSize: 24, fontWeight: 'bold', color: 'black' }}>{this.state.data.firstname}</Text>
                 <Text style={{ fontSize: 18, paddingTop: 8, color: 'black' }}>{this.state.data.lastname}</Text>
