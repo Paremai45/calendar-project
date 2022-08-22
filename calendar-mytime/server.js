@@ -692,19 +692,35 @@ app.post("/getProfile", (req, res) => {
               Object.keys(eventValues).forEach((val) => {
                 allEventsAmount = allEventsAmount + eventValues[val].eventsList.length
               })
-              return res.status(200).json({
-                code: 200,
-                message: "success",
-                result: {
-                  firstname: profileValues.firstname,
-                  lastname: profileValues.lastname,
-                  mobileNo: profileValues.mobileNo,
-                  email: profileValues.email,
-                  allEventsAmount: allEventsAmount,
-                  allEventsPerDayAmount: eventValues[nowDate].eventsList.length,
-                  notification: true
-                }
-              })
+              if (eventValues[nowDate] != undefined) {
+                return res.status(200).json({
+                  code: 200,
+                  message: "success",
+                  result: {
+                    firstname: profileValues.firstname,
+                    lastname: profileValues.lastname,
+                    mobileNo: profileValues.mobileNo,
+                    email: profileValues.email,
+                    allEventsAmount: allEventsAmount,
+                    allEventsPerDayAmount: eventValues[nowDate].eventsList.length,
+                    notification: true
+                  }
+                })
+              } else {
+                return res.status(200).json({
+                  code: 200,
+                  message: "success",
+                  result: {
+                    firstname: profileValues.firstname,
+                    lastname: profileValues.lastname,
+                    mobileNo: profileValues.mobileNo,
+                    email: profileValues.email,
+                    allEventsAmount: allEventsAmount,
+                    allEventsPerDayAmount: 0,
+                    notification: true
+                  }
+                })
+              }
             } else {
               return res.status(200).json({
                 code: 200,
